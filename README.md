@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Monopoly
 
-## Getting Started
+Este é um projeto acadêmico desenvolvido para a disciplina de **Gerência de Projeto e Manutenção de Software** do curso de **Sistemas de Informação**.
 
-First, run the development server:
+O principal objetivo deste trabalho é aplicar conceitos de Gerência de Projeto e Manutenção de Software no desenvolvimento de um sistema interativo, que nesse caso é uma versão digital simplificado do jogo de tabuleiro **Monopoly**.
+Assim, buscamos exercitar:
+
+- Planejamento e acompanhamento do desenvolvimento em equipe
+- Organização das entregas e definição de milestones
+- Documentação e rastreabilidade das funcionalidades implementadas
+- Uso de ferramentas para colaboração e versionamento de código
+
+## Tecnologias utilizadas
+
+- [Next.js](https://nextjs.org/) — apenas frontend, sem backend do Next
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/) — para desenvolvimento rápido
+- [Tailwind CSS](https://tailwindcss.com/)
+
+
+## Como rodar o projeto
+
+### 1. Requisitos
+
+Antes de tudo, instale as ferramentas abaixo:
+
+- [Node.js](https://nodejs.org/) (versão recomendada: **LTS**, ex: 18.x ou 20.x)
+  > Ao instalar o Node.js, o **npm** será instalado automaticamente.
+- Git (para clonar o repositório)
+
+---
+
+### 2. Instalando o projeto
+
+Abra um terminal e siga os passos:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone o repositório
+git clone https://github.com/Felyppe1/monopoly
+
+# Acesse a pasta do projeto
+cd monopoly
+
+# Instale as dependências
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Rodando o projeto
+```bash
+# Rode o projeto em ambiente de desenvolvimento
+npm run dev
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Abra seu navegador e acesse: http://localhost:3000
+```
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Desenvolvedores
+- Luiz Felyppe Nunes dos Santos
+- Mayara Frazão Guaraciaba de Lima
+- Bianca Monsores da Silva Rocha
+- Josué Lourenco dos Santos
+- Rachel
+- Bernardo Bittencourt Mendes
