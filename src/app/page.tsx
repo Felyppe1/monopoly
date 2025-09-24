@@ -1,103 +1,327 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import Image from 'next/image';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+import { corParaTailwind } from "@/utils/mapeamento"
+
+const terrenos = [
+    {
+        "tipo": "ponto de partida",
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Av. Sumaré",
+        "valor": 60,
+        "cor": "marrom"
+    },
+    {
+        "tipo": "cofre",
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Av. Presidente Vargas",
+        "valor": 60,
+        "cor": "marrom"
+    },
+    {
+        "tipo": "imposto",
+        "nome": "Imposto de Renda",
+        "valor": 200
+    },
+    {
+        "tipo": "estação de metrô",
+        "nome": "Estação do Maracanã",
+        "valor": 200
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Rua 25 de Março",
+        "valor": 100,
+        "cor": "azul claro"
+    },
+    {
+        "tipo": "sorte",
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Av. São João",
+        "valor": 100,
+        "cor": "azul claro"
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Av. Paulista",
+        "valor": 120,
+        "cor": "azul claro"
+    },
+    {
+        "tipo": "prisão",
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Av. Veneza",
+        "valor": 140,
+        "cor": "rosa"
+    },
+    {
+        "tipo": "companhia",
+        "nome": "Companhia Elétrica",
+        "valor": 150
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Niterói",
+        "valor": 140,
+        "cor": "rosa"
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Av. Atlântica",
+        "valor": 160,
+        "cor": "rosa"
+    },
+    {
+        "tipo": "estação de metrô",
+        "nome": "Estação do Méier",
+        "valor": 200
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Av. Presidente Kubitschek",
+        "valor": 180,
+        "cor": "laranja"
+    },
+    {
+        "tipo": "cofre",
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Boulevard Higienópolis",
+        "valor": 180,
+        "cor": "laranja"
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Av. Ipiranga",
+        "valor": 200,
+        "cor": "laranja"
+    },
+    {
+        "tipo": "estacionamento",
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Ipanema",
+        "valor": 220,
+        "cor": "vermelho"
+    },
+    {
+        "tipo": "sorte",
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Leblon",
+        "valor": 220,
+        "cor": "vermelho"
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Copacabana",
+        "valor": 240,
+        "cor": "vermelho"
+    },
+    {
+        "tipo": "estação de metrô",
+        "nome": "Estação de Conexão",
+        "valor": 200
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Av. Cidade Jardim",
+        "valor": 260,
+        "cor": "amarelo"
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Pacaembu",
+        "valor": 260,
+        "cor": "amarelo"
+    },
+    {
+        "tipo": "companhia",
+        "nome": "Companhia de Saneamento Básico",
+        "valor": 150
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Ibirapuera",
+        "valor": 280,
+        "cor": "amarelo"
+    },
+    {
+        "tipo": "vá para prisão",
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Barra da Tijuca",
+        "valor": 300,
+        "cor": "verde"
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Jardim Botânico",
+        "valor": 300,
+        "cor": "verde"
+    },
+    {
+        "tipo": "cofre",
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Lagoa Rodrigo de Freitas",
+        "valor": 320,
+        "cor": "verde"
+    },
+    {
+        "tipo": "estação de metrô",
+        "nome": "Estação da República",
+        "valor": 200
+    },
+    {
+        "tipo": "sorte",
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Av. Morumbi",
+        "valor": 350,
+        "cor": "roxo"
+    },
+    {
+        "tipo": "imposto",
+        "nome": "Taxa da Riqueza",
+        "valor": 100
+    },
+    {
+        "tipo": "propriedade",
+        "nome": "Rua Oscar Freire",
+        "valor": 400,
+        "cor": "roxo"
+    }
+]
+
+export default function Test() {
+    return (
+        <div
+            className='grid h-full max-h-screen aspect-5/4 border border-black bg-tabuleiro'
+            style={{
+                gridTemplateColumns: `minmax(0, 6fr) repeat(9, minmax(0, 3fr)) minmax(0, 6fr)`,
+                gridTemplateRows: `minmax(0, 7fr) repeat(9, minmax(0, 3fr)) minmax(0, 7fr)`,
+                gridTemplateAreas: `
+                "c20 c21 c22 c23 c24 c25 c26 c27 c28 c29 c30"
+                "c19 m   m   m   m   m   m   m   m   m   c31"
+                "c18 m   m   m   m   m   m   m   m   m   c32"
+                "c17 m   m   m   m   m   m   m   m   m   c33"
+                "c16 m   m   m   m   m   m   m   m   m   c34"
+                "c15 m   m   m   m   m   m   m   m   m   c35"
+                "c14 m   m   m   m   m   m   m   m   m   c36"
+                "c13 m   m   m   m   m   m   m   m   m   c37"
+                "c12 m   m   m   m   m   m   m   m   m   c38"
+                "c11 m   m   m   m   m   m   m   m   m   c39"
+                "c10 c9  c8  c7  c6  c5  c4  c3  c2  c1  c0"
+                `
+            }}
+        >
+            {terrenos.map((terreno, i) => {
+                return (
+                    <Terreno
+                        key={i}
+                        posicao={i}
+                        tipo={terreno.tipo}
+                        nome={terreno.nome}
+                        valor={terreno.valor}
+                        cor={terreno.cor}
+                    />
+                )
+            })}
+            {/* {Array.from({ length: 40 }).map((_, i) => {
+                return (
+                    <Terreno
+                        key={i}
+                        posicao={i}
+                        tipo="propriedade"
+                        nome={`Propriedade ${i}`}
+                        valor={100 + i * 10}
+                        cor="verde"
+                    />
+                )
+            })} */}
+            <div
+                className='flex justify-center items-center relative border border-black'
+                style={{
+                    gridArea: 'm'
+                }}
+            >
+                <Image
+                    src="/monopoly-logo.png"
+                    alt='Logo do Monopoly escrito "Monopoly" em branco em um fundo vermelho com o boneco do jogo de terno preto em cima'
+                    className='relative -rotate-45 -top-[7%]'
+                    width={400}
+                    height={400}
+                />
+            </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+    )
+}
+
+
+interface TerrenoProps {
+    posicao: number
+    ehLateral?: boolean
+    tipo: 'propriedade' | 'imposto' | 'companhia' | 'estação de metrô' | 'prisão' | 'sorte' | 'cofre' | 'ponto de partida' | 'estacionamento' | 'vá para prisão'
+    nome?: string
+    valor?: number
+    cor?: string
+}
+
+function Terreno({ posicao, tipo, nome, valor, cor }: TerrenoProps) {
+    const ehLateral = (posicao > 10 && posicao < 20) || (posicao > 30 && posicao < 40)
+    const ehEsquerda = posicao > 10 && posicao < 20
+    const ehDireita = posicao > 30 && posicao < 40
+    
+    return (
+        <div 
+            className={`${ehLateral ? '' : 'flex-col'} flex border border-black text-xs`}
+            style={{
+                gridArea: `c${posicao}`
+            }}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+
+            {tipo === 'propriedade' && !ehLateral && (
+                <div className={`h-5 bg-${corParaTailwind(cor!)}`}></div>
+            )}
+
+            {tipo === 'propriedade' && ehDireita && (
+                <div className={`min-w-5 bg-${corParaTailwind(cor!)}`}></div>
+            )}
+
+            <div className={`${ehLateral ? 'px-2 py-1' : 'py-4'} flex-grow flex flex-col justify-between items-center text-center`}>
+                {tipo === 'propriedade' || tipo === 'imposto' || tipo === 'companhia' || tipo === 'estação de metrô' ? (
+                    <>
+                    <span className='font-bold'>{nome}</span>
+                    <span>Preço ${valor}</span>
+                    </>
+                ) : (
+                    <span>{tipo}</span>
+                )}
+
+                {/* <span className="text-gray-600">
+                    {posicao}
+                </span> */}
+            </div>
+
+            {tipo === 'propriedade' && ehEsquerda && (
+                <div className={`min-w-5 bg-${corParaTailwind(cor!)}`}></div>
+            )}
+        </div>
+    )
 }
