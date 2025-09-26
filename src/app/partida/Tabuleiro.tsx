@@ -1,30 +1,28 @@
 'use client'
 
+import { useState } from 'react';
 import Image from 'next/image';
 
 import { corParaTailwind } from "@/utils/mapeamento"
 import { Terreno } from './Terreno';
+import { Button } from '@/components/ui/button';
 
 const terrenos = [
     {
         "tipo": "ponto de partida",
-        "jogadores": [
-            'pato',
-            'carro',
-            'pato',
-            'carro',
-            'pato',
-            'carro',
-            'pato',
-            'carro',
-        ]
     },
     {
         "tipo": "propriedade",
         "nome": "Av. Sumaré",
         "valor": 60,
         "cor": "marrom",
-        "jogadores": []
+         "jogadores": [
+            'pato',
+            'carro',
+            'pato',
+            'carro',
+            'pato',
+        ]
     },
     {
         "tipo": "cofre",
@@ -223,7 +221,48 @@ const terrenos = [
     }
 ]
 
+const gerarPontosDado = (numero: number) => {
+    const pontos = [
+        [], // não usado
+        [4], // 1
+        [0, 8], // 2
+        [0, 4, 8], // 3
+        [0, 2, 6, 8], // 4
+        [0, 2, 4, 6, 8], // 5
+        [0, 1, 2, 6, 7, 8] // 6
+    ];
+    
+    return Array.from({ length: 9 }, (_, i) => pontos[numero]?.includes(i) || false);
+};
+
 export function Tabuleiro() {
+    const [dado1, setDado1] = useState(5);
+    const [dado2, setDado2] = useState(3);
+    const [rolando, setRolando] = useState(false);
+
+    const rolarDados = () => {
+        setRolando(true);
+        
+        // Simular movimento dos dados
+        const intervalo = setInterval(() => {
+            setDado1(Math.floor(Math.random() * 6) + 1);
+            setDado2(Math.floor(Math.random() * 6) + 1);
+        }, 100);
+
+        // Parar após 1 segundo e meio e definir os valores finais
+        setTimeout(() => {
+            clearInterval(intervalo);
+            setDado1(Math.floor(Math.random() * 6) + 1);
+            setDado2(Math.floor(Math.random() * 6) + 1);
+            setRolando(false);
+        }, 1500);
+    };
+
+    const passarVez = () => {
+        // Lógica para passar a vez
+        console.log('Passando a vez...');
+    };
+
     return (
         <div
             className='grid h-full max-h-screen aspect-5/4 border border-black bg-tabuleiro'
@@ -250,28 +289,17 @@ export function Tabuleiro() {
                     <Terreno
                         key={i}
                         posicao={i}
-                        tipo={terreno.tipo}
+                        tipo={terreno.tipo as any}
                         nome={terreno.nome}
                         valor={terreno.valor}
                         cor={terreno.cor}
-                        personagens={terreno.jogadores}
+                        personagens={terreno.jogadores as any}
                     />
                 )
             })}
-            {/* {Array.from({ length: 40 }).map((_, i) => {
-                return (
-                    <Terreno
-                        key={i}
-                        posicao={i}
-                        tipo="propriedade"
-                        nome={`Propriedade ${i}`}
-                        valor={100 + i * 10}
-                        cor="verde"
-                    />
-                )
-            })} */}
+
             <div
-                className='flex justify-center items-center relative border border-black'
+                className='flex flex-col justify-center items-center relative border border-black bg-green-100 p-4'
                 style={{
                     gridArea: 'm'
                 }}
@@ -279,10 +307,41 @@ export function Tabuleiro() {
                 <Image
                     src="/monopoly-logo.png"
                     alt='Logo do Monopoly escrito "Monopoly" em branco em um fundo vermelho com o boneco do jogo de terno preto em cima'
-                    className='relative -rotate-45 -top-[7%]'
+                    className='absolute -rotate-45 mb-4'
                     width={400}
                     height={400}
                 />
+                
+                <div className='flex gap-4 mb-6'>
+                    <div className={`w-16 h-16 bg-white border-2 border-black rounded-lg shadow-lg flex justify-center items-center transform rotate-3 ${rolando ? 'animate-bounce' : ''}`}>
+                        <div className='grid grid-cols-3 grid-rows-3 gap-1 w-10 h-10'>
+                            {gerarPontosDado(dado1).map((temPonto, i) => (
+                                <div key={i} className={`w-2 h-2 rounded-full ${temPonto ? 'bg-black' : ''}`}></div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className={`w-16 h-16 bg-white border-2 border-black rounded-lg shadow-lg flex justify-center items-center transform -rotate-3 ${rolando ? 'animate-bounce' : ''}`}>
+                        <div className='grid grid-cols-3 grid-rows-3 gap-1 w-10 h-10'>
+                            {gerarPontosDado(dado2).map((temPonto, i) => (
+                                <div key={i} className={`w-2 h-2 rounded-full ${temPonto ? 'bg-black' : ''}`}></div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <div className='flex flex-col gap-3 z-1'>
+                    <Button 
+                        onClick={rolarDados}
+                        disabled={rolando}
+                    >
+                        {rolando ? 'ROLANDO...' : 'JOGAR DADOS'}
+                    </Button>
+                    <Button 
+                        onClick={passarVez}
+                    >
+                        TERMINAR TURNO
+                    </Button>
+                </div>
             </div>
         </div>
     )

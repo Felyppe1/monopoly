@@ -18,7 +18,7 @@ export function Terreno({ posicao, tipo, nome, valor, cor, personagens }: Terren
     
     return (
         <div 
-            className={`${ehLateral ? '' : 'flex-col'} flex border border-black text-xs relative`}
+            className={`${ehLateral ? '' : 'flex-col'} flex border border-black text-xs relative group`}
             style={{
                 gridArea: `c${posicao}`
             }}
@@ -123,7 +123,7 @@ export function Terreno({ posicao, tipo, nome, valor, cor, personagens }: Terren
                     key={personagem}
                     src={`/personagem-${personagem}.png`}
                     alt=""
-                    className="absolute w-10 left-1/2 top-1/2 "
+                    className="absolute w-10 left-1/2 top-1/2 group-hover:opacity-10 transition-opacity duration-100"
                     style={{
                         transform: ehLateral
                                         ? `translate(calc(-50% + ${offsetY}%), calc(-50% + ${offsetX}%))`
