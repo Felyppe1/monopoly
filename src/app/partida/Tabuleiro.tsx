@@ -17,15 +17,20 @@ const terrenos = [
         "valor": 60,
         "cor": "marrom",
          "jogadores": [
-            'pato',
+            'cachorro',
             'carro',
-            'pato',
-            'carro',
+            'cartola',
+            'dedal',
+            'gato',
+            'navio',
             'pato',
         ]
     },
     {
         "tipo": "cofre",
+        jogadores: [
+            'pinguim'
+        ]
     },
     {
         "tipo": "propriedade",

@@ -13,8 +13,14 @@ interface Jogador {
 }
 
 const personagens = [
-  { id: 'pato', nome: 'Player', img: '/personagem-pato.png' },
-  { id: 'carro', nome: 'Race Car', img: '/personagem-carro.png' }
+    { id: 'cachorro', nome: 'Cachorro', img: '/personagem-cachorro.png' },
+    { id: 'carro', nome: 'Carro de Corrida', img: '/personagem-carro.png' },
+    { id: 'cartola', nome: 'Cartola', img: '/personagem-cartola.png' },
+    { id: 'dedal', nome: 'Dedal', img: '/personagem-dedal.png' },
+    { id: 'gato', nome: 'Gato', img: '/personagem-gato.png' },
+    { id: 'navio', nome: 'Navio', img: '/personagem-navio.png' },
+    { id: 'pato', nome: 'Pato', img: '/personagem-pato.png' },
+    { id: 'pinguim', nome: 'Pinguim', img: '/personagem-pinguim.png' },
 ]
 
 export default function Home() {
@@ -83,23 +89,28 @@ export default function Home() {
                         <Card key={jogador.id} className="w-[15rem] p-2 relative">
                             <CardHeader>
                                 <CardTitle>
-                                    {index === 0 && 'Jogador'}
+                                    {personagens.find(p => p.id === jogador.personagem)?.nome}
+                                    {/* {index === 0 && 'Jogador'}
                                     {index === 1 && 'Carro de Corrida'}
                                     {index === 2 && 'Cartola'}
-                                    {index > 2 && `Jogador ${index + 1}`}
+                                    {index > 2 && `Jogador ${index + 1}`} */}
                                 </CardTitle>
                             </CardHeader>
                             
                             <CardContent className="">
                                 <div className="flex justify-center">
                                     <div className="w-20 h-20 bg-cyan-200 rounded-lg border-2 border-teal-600 flex items-center justify-center cursor-pointer"
-                                         onClick={() => {
-                                             const proximoPersonagem = personagens[(personagens.findIndex(p => p.id === jogador.personagem) + 1) % personagens.length]
-                                             selecionarPersonagem(jogador.id, proximoPersonagem.id as any)
-                                         }}>
-                                        <img src={jogador.personagem === 'pato' ? '/personagem-pato.png' : '/personagem-carro.png'} 
-                                             alt={jogador.personagem} 
-                                             className="w-16 h-16" />
+                                        onClick={() => {
+                                            const proximoPersonagem = personagens[
+                                                (personagens.findIndex(p => p.id === jogador.personagem) + 1) % personagens.length
+                                            ]
+                                            selecionarPersonagem(jogador.id, proximoPersonagem.id as any)
+                                        }}>
+                                        <img
+                                            src={`/personagem-${jogador.personagem}.png`}
+                                            alt={jogador.personagem}
+                                            className="w-16 h-16"
+                                        />
                                     </div>
                                 </div>
 
@@ -116,14 +127,14 @@ export default function Home() {
                             </CardContent>
 
                             {jogadores.length > 2 && index >= 2 && (
-                                    <Button
-                                        onClick={() => removerJogador(jogador.id)}
-                                        variant="retro"
-                                        size="sm"
-                                        className="absolute -bottom-[12%] left-[50%] transform -translate-x-1/2"
-                                    >
-                                        REMOVE
-                                    </Button>
+                                <Button
+                                    onClick={() => removerJogador(jogador.id)}
+                                    variant="retro"
+                                    size="sm"
+                                    className="absolute -bottom-[12%] left-[50%] transform -translate-x-1/2"
+                                >
+                                    REMOVER
+                                </Button>
                             )}
                         </Card>
                     ))}
@@ -137,7 +148,7 @@ export default function Home() {
                         onClick={adicionarJogador}
                         disabled={jogadores.length >= 8}
                     >
-                        ADD PLAYER
+                        ADICIONAR JOGADOR
                     </Button>
                     
                     <Button 
@@ -146,7 +157,7 @@ export default function Home() {
                         onClick={iniciarJogo}
                         disabled={!podeJogar}
                     >
-                        PLAY
+                        JOGADOR
                     </Button>
                 </div>
             </div>
