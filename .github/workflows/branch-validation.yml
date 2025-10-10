@@ -1,0 +1,22 @@
+name: Branch Validation
+on:
+  push:
+    branches-ignore:
+      - main
+      - develop
+jobs:
+  validate-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name convention
+        run: |
+          echo "Validating branch name: $GITHUB_REF_NAME"
+          
+          # Check if branch name contains only lowercase letters and hyphens
+          if [[ ! "$GITHUB_REF_NAME" =~ ^[a-z-]+$ ]]; then
+            echo "Branch name '$GITHUB_REF_NAME' does not follow the naming convention!"
+            echo "Branch names must contain only lowercase letters (a-z) and hyphens (-)."
+            exit 1
+          fi
+
+          echo "Branch name '$GITHUB_REF_NAME' follows the naming convention!"
