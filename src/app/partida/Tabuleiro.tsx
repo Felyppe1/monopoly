@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 
 import { corParaTailwind } from '@/utils/mapeamento'
 import { Terreno } from './Terreno'
 import { Button } from '@/components/ui/button'
+import { Peca } from '@/lib/peca'
 
-const terrenos = [
+const terrenosInit = [
     {
         tipo: 'ponto de partida',
     },
@@ -224,6 +225,19 @@ const terrenos = [
     },
 ]
 
+interface Terreno {
+    tipo: string
+    nome?: string
+    valor?: number
+    cor?: string
+    jogadores?: string[]
+}
+
+interface GameState {
+    terrenos: Terreno[]
+    pecas: Peca[]
+}
+
 const gerarPontosDado = (numero: number) => {
     const pontos = [
         [], // não usado
@@ -245,8 +259,29 @@ export function Tabuleiro() {
     const [dado1, setDado1] = useState(5)
     const [dado2, setDado2] = useState(3)
     const [rolando, setRolando] = useState(false)
+    // estado do jogo (peças + tabuleiro)
+    const [gameState, setGameState] = useState<GameState>(() => {
+        const pecas: Peca[] = []
+        const terrenos = terrenosInit.map(t => ({ ...t }))
+
+        // cria uma peça pra cada jogador nos terrenos iniciais
+        terrenosInit.forEach((t, idx) => {
+            if (t.jogadores?.length) {
+                t.jogadores.forEach(p => pecas.push(new Peca(p, idx)))
+            }
+        })
+
+        return { terrenos, pecas }
+    })
+
+    const [turno, setTurno] = useState(0) // índice em pecas
+    // lock síncrono para prevenir reentradas ao clicar rapidamente
+    const isRollingRef = useRef(false)
 
     const rolarDados = () => {
+        // evita duplo clique enquanto rola
+        if (isRollingRef.current) return
+        isRollingRef.current = true
         setRolando(true)
 
         // Simular movimento dos dados
@@ -255,17 +290,75 @@ export function Tabuleiro() {
             setDado2(Math.floor(Math.random() * 6) + 1)
         }, 100)
 
-        // Parar após 1 segundo e meio e definir os valores finais
+        // depois de 1.5s para de rolar e define valores finais
         setTimeout(() => {
             clearInterval(intervalo)
-            setDado1(Math.floor(Math.random() * 6) + 1)
-            setDado2(Math.floor(Math.random() * 6) + 1)
+            const final1 = Math.floor(Math.random() * 6) + 1
+            const final2 = Math.floor(Math.random() * 6) + 1
+            setDado1(final1)
+            setDado2(final2)
+
+
+            // move a peça da vez pelo total dos dados
+            const passos = final1 + final2
+            setGameState(prev => {
+                const idxPeca = turno % prev.pecas.length
+                const peca = prev.pecas[idxPeca]
+                if (!peca) return prev
+
+                // loga movimento pra debug
+                console.log('=== Movimento inicio ===')
+                console.log('Peça:', { id: peca.id, personagem: peca.personagem, pos: peca.posicao })
+                console.log('Dados:', { dado1: final1, dado2: final2, total: passos })
+
+                // calcula pra onde a peça vai
+                const [antiga, nova] = peca.mover(passos)
+                console.log('Move de', antiga, 'pra', nova)
+
+                // atualiza estado do jogo
+                const pecas = [...prev.pecas]
+                pecas[idxPeca] = new Peca(peca.personagem, nova, peca.id)
+
+                const terrenos = prev.terrenos.map((t, idx) => {
+                    if (idx === antiga) {
+                        // tira peça do terreno antigo
+                        const jogadores = t.jogadores || []
+                        const idxJogador = jogadores.indexOf(peca.personagem)
+                        if (idxJogador === -1) return t
+                        const novoJogadores = [...jogadores]
+                        novoJogadores.splice(idxJogador, 1)
+                        return { ...t, jogadores: novoJogadores }
+                    }
+                    if (idx === nova) {
+                        // coloca peça no terreno novo
+                        const jogadores = [...(t.jogadores || [])]
+                        jogadores.push(peca.personagem)
+                        return { ...t, jogadores }
+                    }
+                    return t
+                })
+
+                // loga estado final dos terrenos
+                console.log('Terrenos:', {
+                    origem: terrenos[antiga]?.jogadores,
+                    destino: terrenos[nova]?.jogadores,
+                })
+                console.log('=== Movimento end ===')
+
+                return { pecas, terrenos }
+            })
+
+            // próximo jogador
+            setTurno(t => (t + 1) % Math.max(1, gameState.pecas.length))
+
+            // libera pra jogar de novo
+            isRollingRef.current = false
             setRolando(false)
         }, 1500)
     }
 
     const passarVez = () => {
-        // Lógica para passar a vez
+        // TODO: lógica de final de turno
         console.log('Passando a vez...')
     }
 
@@ -290,7 +383,7 @@ export function Tabuleiro() {
                 `,
             }}
         >
-            {terrenos.map((terreno, i) => {
+            {gameState.terrenos.map((terreno, i) => {
                 return (
                     <Terreno
                         key={i}

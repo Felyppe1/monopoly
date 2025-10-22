@@ -168,7 +168,7 @@ export function Terreno({
 
                 return (
                     <img
-                        key={personagem}
+                        key={`${posicao}-${personagem}-${index}`}
                         src={`/personagem-${personagem}.png`}
                         alt=""
                         className="absolute w-10 left-1/2 top-1/2 group-hover:opacity-10 transition-opacity duration-100"
@@ -180,16 +180,6 @@ export function Terreno({
                     />
                 )
                 // const offset = - 70 + (index * 60);
-
-                return (
-                    <img
-                        key={personagem}
-                        src={`/personagem-${personagem}.png`}
-                        alt=""
-                        className={`absolute w-12 left-[50%] top-[50%] `}
-                        style={{ translate: `-50% calc(${offset}% - 50%)` }}
-                    />
-                )
             })}
         </div>
     )
