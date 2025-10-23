@@ -6,223 +6,7 @@ import Image from 'next/image'
 import { corParaTailwind } from '@/utils/mapeamento'
 import { Terreno } from './Terreno'
 import { Button } from '@/components/ui/button'
-
-const terrenos = [
-    {
-        tipo: 'ponto de partida',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Av. Sumaré',
-        valor: 60,
-        cor: 'marrom',
-        jogadores: [
-            'cachorro',
-            'carro',
-            'cartola',
-            'dedal',
-            'gato',
-            'navio',
-            'pato',
-        ],
-    },
-    {
-        tipo: 'cofre',
-        jogadores: ['pinguim'],
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Av. Presidente Vargas',
-        valor: 60,
-        cor: 'marrom',
-        jogadores: [],
-    },
-    {
-        tipo: 'imposto',
-        nome: 'Imposto de Renda',
-        valor: 200,
-    },
-    {
-        tipo: 'estação de metrô',
-        nome: 'Estação do Maracanã',
-        valor: 200,
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Rua 25 de Março',
-        valor: 100,
-        cor: 'azul claro',
-    },
-    {
-        tipo: 'sorte',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Av. São João',
-        valor: 100,
-        cor: 'azul claro',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Av. Paulista',
-        valor: 120,
-        cor: 'azul claro',
-    },
-    {
-        tipo: 'prisão',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Av. Veneza',
-        valor: 140,
-        cor: 'rosa',
-    },
-    {
-        tipo: 'companhia',
-        nome: 'Companhia Elétrica',
-        valor: 150,
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Niterói',
-        valor: 140,
-        cor: 'rosa',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Av. Atlântica',
-        valor: 160,
-        cor: 'rosa',
-    },
-    {
-        tipo: 'estação de metrô',
-        nome: 'Estação do Méier',
-        valor: 200,
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Av. Presidente Kubitschek',
-        valor: 180,
-        cor: 'laranja',
-    },
-    {
-        tipo: 'cofre',
-        jogadores: [],
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Boulevard Higienópolis',
-        valor: 180,
-        cor: 'laranja',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Av. Ipiranga',
-        valor: 200,
-        cor: 'laranja',
-    },
-    {
-        tipo: 'estacionamento',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Ipanema',
-        valor: 220,
-        cor: 'vermelho',
-    },
-    {
-        tipo: 'sorte',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Leblon',
-        valor: 220,
-        cor: 'vermelho',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Copacabana',
-        valor: 240,
-        cor: 'vermelho',
-    },
-    {
-        tipo: 'estação de metrô',
-        nome: 'Estação de Conexão',
-        valor: 200,
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Av. Cidade Jardim',
-        valor: 260,
-        cor: 'amarelo',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Pacaembu',
-        valor: 260,
-        cor: 'amarelo',
-    },
-    {
-        tipo: 'companhia',
-        nome: 'Companhia de Saneamento Básico',
-        valor: 150,
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Ibirapuera',
-        valor: 280,
-        cor: 'amarelo',
-    },
-    {
-        tipo: 'vá para prisão',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Barra da Tijuca',
-        valor: 300,
-        cor: 'verde',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Jardim Botânico',
-        valor: 300,
-        cor: 'verde',
-    },
-    {
-        tipo: 'cofre',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Lagoa Rodrigo de Freitas',
-        valor: 320,
-        cor: 'verde',
-    },
-    {
-        tipo: 'estação de metrô',
-        nome: 'Estação da República',
-        valor: 200,
-    },
-    {
-        tipo: 'sorte',
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Av. Morumbi',
-        valor: 350,
-        cor: 'roxo',
-    },
-    {
-        tipo: 'imposto',
-        nome: 'Taxa de Riqueza',
-        valor: 100,
-    },
-    {
-        tipo: 'propriedade',
-        nome: 'Rua Oscar Freire',
-        valor: 400,
-        cor: 'roxo',
-    },
-]
+import { useJogoStore } from '@/store/useJogoStore'
 
 const gerarPontosDado = (numero: number) => {
     const pontos = [
@@ -242,6 +26,216 @@ const gerarPontosDado = (numero: number) => {
 }
 
 export function Tabuleiro() {
+    const estadoJogo = useJogoStore(state => state.estadoJogo)!
+
+    const terrenos = [
+        {
+            tipo: 'ponto de partida',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Av. Sumaré',
+            valor: 60,
+            cor: 'marrom',
+            jogadores: estadoJogo.jogadores.map(jogador => jogador.personagem),
+        },
+        {
+            tipo: 'cofre',
+            jogadores: [],
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Av. Presidente Vargas',
+            valor: 60,
+            cor: 'marrom',
+            jogadores: [],
+        },
+        {
+            tipo: 'imposto',
+            nome: 'Imposto de Renda',
+            valor: 200,
+        },
+        {
+            tipo: 'estação de metrô',
+            nome: 'Estação do Maracanã',
+            valor: 200,
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Rua 25 de Março',
+            valor: 100,
+            cor: 'azul claro',
+        },
+        {
+            tipo: 'sorte',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Av. São João',
+            valor: 100,
+            cor: 'azul claro',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Av. Paulista',
+            valor: 120,
+            cor: 'azul claro',
+        },
+        {
+            tipo: 'prisão',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Av. Veneza',
+            valor: 140,
+            cor: 'rosa',
+        },
+        {
+            tipo: 'companhia',
+            nome: 'Companhia Elétrica',
+            valor: 150,
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Niterói',
+            valor: 140,
+            cor: 'rosa',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Av. Atlântica',
+            valor: 160,
+            cor: 'rosa',
+        },
+        {
+            tipo: 'estação de metrô',
+            nome: 'Estação do Méier',
+            valor: 200,
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Av. Presidente Kubitschek',
+            valor: 180,
+            cor: 'laranja',
+        },
+        {
+            tipo: 'cofre',
+            jogadores: [],
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Boulevard Higienópolis',
+            valor: 180,
+            cor: 'laranja',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Av. Ipiranga',
+            valor: 200,
+            cor: 'laranja',
+        },
+        {
+            tipo: 'estacionamento',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Ipanema',
+            valor: 220,
+            cor: 'vermelho',
+        },
+        {
+            tipo: 'sorte',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Leblon',
+            valor: 220,
+            cor: 'vermelho',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Copacabana',
+            valor: 240,
+            cor: 'vermelho',
+        },
+        {
+            tipo: 'estação de metrô',
+            nome: 'Estação de Conexão',
+            valor: 200,
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Av. Cidade Jardim',
+            valor: 260,
+            cor: 'amarelo',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Pacaembu',
+            valor: 260,
+            cor: 'amarelo',
+        },
+        {
+            tipo: 'companhia',
+            nome: 'Companhia de Saneamento Básico',
+            valor: 150,
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Ibirapuera',
+            valor: 280,
+            cor: 'amarelo',
+        },
+        {
+            tipo: 'vá para prisão',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Barra da Tijuca',
+            valor: 300,
+            cor: 'verde',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Jardim Botânico',
+            valor: 300,
+            cor: 'verde',
+        },
+        {
+            tipo: 'cofre',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Lagoa Rodrigo de Freitas',
+            valor: 320,
+            cor: 'verde',
+        },
+        {
+            tipo: 'estação de metrô',
+            nome: 'Estação da República',
+            valor: 200,
+        },
+        {
+            tipo: 'sorte',
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Av. Morumbi',
+            valor: 350,
+            cor: 'roxo',
+        },
+        {
+            tipo: 'imposto',
+            nome: 'Taxa de Riqueza',
+            valor: 100,
+        },
+        {
+            tipo: 'propriedade',
+            nome: 'Rua Oscar Freire',
+            valor: 400,
+            cor: 'roxo',
+        },
+    ]
     const [dado1, setDado1] = useState(5)
     const [dado2, setDado2] = useState(3)
     const [rolando, setRolando] = useState(false)

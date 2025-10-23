@@ -11,35 +11,53 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
+import { Jogo } from '@/domain/jogo'
+import { useJogoStore } from '@/store/useJogoStore'
+import { PERSONAGEM } from '@/domain/jogador'
 
 interface Jogador {
     id: number
     nome: string
-    personagem: 'pato' | 'carro'
+    personagem: PERSONAGEM
 }
 
 const personagens = [
-    { id: 'cachorro', nome: 'Cachorro', img: '/personagem-cachorro.png' },
-    { id: 'carro', nome: 'Carro de Corrida', img: '/personagem-carro.png' },
-    { id: 'cartola', nome: 'Cartola', img: '/personagem-cartola.png' },
-    { id: 'dedal', nome: 'Dedal', img: '/personagem-dedal.png' },
-    { id: 'gato', nome: 'Gato', img: '/personagem-gato.png' },
-    { id: 'navio', nome: 'Navio', img: '/personagem-navio.png' },
-    { id: 'pato', nome: 'Pato', img: '/personagem-pato.png' },
-    { id: 'pinguim', nome: 'Pinguim', img: '/personagem-pinguim.png' },
+    {
+        id: PERSONAGEM.CACHORRO,
+        nome: 'Cachorro',
+        img: '/personagem-cachorro.png',
+    },
+    {
+        id: PERSONAGEM.CARRO,
+        nome: 'Carro de Corrida',
+        img: '/personagem-carro.png',
+    },
+    { id: PERSONAGEM.CARTOLA, nome: 'Cartola', img: '/personagem-cartola.png' },
+    { id: PERSONAGEM.DEDAL, nome: 'Dedal', img: '/personagem-dedal.png' },
+    { id: PERSONAGEM.GATO, nome: 'Gato', img: '/personagem-gato.png' },
+    { id: PERSONAGEM.NAVIO, nome: 'Navio', img: '/personagem-navio.png' },
+    { id: PERSONAGEM.PATO, nome: 'Pato', img: '/personagem-pato.png' },
+    { id: PERSONAGEM.PINGUIM, nome: 'Pinguim', img: '/personagem-pinguim.png' },
 ]
 
 export default function Home() {
     const [jogadores, setJogadores] = useState<Jogador[]>([
-        { id: 1, nome: '', personagem: 'pato' },
-        { id: 2, nome: '', personagem: 'carro' },
+        { id: 1, nome: '', personagem: PERSONAGEM.PATO },
+        { id: 2, nome: '', personagem: PERSONAGEM.CARRO },
     ])
+
+    const setJogo = useJogoStore(state => state.setJogo)
+    const setEstadoJogo = useJogoStore(state => state.setEstadoJogo)
+
     const router = useRouter()
 
     const adicionarJogador = () => {
         if (jogadores.length < 8) {
-            const novosPersonagens = ['pato', 'carro'] as const
-            const personagemDisponivel = novosPersonagens[jogadores.length % 2]
+            const personagensDisponiveis = Object.values(PERSONAGEM).filter(
+                personagem => !jogadores.some(j => j.personagem !== personagem),
+            )
+            const personagemDisponivel =
+                personagensDisponiveis[jogadores.length % 2]
 
             setJogadores([
                 ...jogadores,
@@ -68,7 +86,7 @@ export default function Home() {
 
     const selecionarPersonagem = (
         jogadorId: number,
-        personagem: 'pato' | 'carro',
+        personagem: PERSONAGEM,
     ) => {
         setJogadores(
             jogadores.map(jogador =>
@@ -81,8 +99,18 @@ export default function Home() {
         jogadores.length >= 2 && jogadores.every(j => j.nome.trim() !== '')
 
     const iniciarJogo = () => {
-        if (podeJogar) {
+        try {
+            const jogo = Jogo.criar(jogadores)
+
+            const estadoJogo = jogo.toObject()
+
+            setEstadoJogo(estadoJogo)
+
+            setJogo(jogo)
+
             router.push('/partida')
+        } catch (error) {
+            console.error('Erro ao iniciar o jogo:', error)
         }
     }
 
@@ -197,7 +225,7 @@ export default function Home() {
                         onClick={iniciarJogo}
                         disabled={!podeJogar}
                     >
-                        JOGADOR
+                        JOGAR
                     </Button>
                 </div>
             </div>
