@@ -30,6 +30,7 @@ export class Jogo {
     private jogadores: Jogador[]
     private estado: ESTADO_JOGO
     private personagemVencedor: string | null
+    private jogadorAtualIndex: number
 
     static criar(jogadores: CriarJogadorInput[]) {
         const jogo = new Jogo({
@@ -78,6 +79,29 @@ export class Jogo {
         this.jogadores = data.jogadores.map(jogador => new Jogador(jogador))
         this.estado = data.estado
         this.personagemVencedor = data.personagemVencedor ?? null
+        this.jogadorAtualIndex = 0 
+    }
+
+    private rolarDado(): number {
+        return Math.floor(Math.random() * 6) + 1
+    }
+
+    jogarDados(): { dado1: number; dado2: number } {
+        if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
+            throw new Error('O jogo já está finalizado')
+        }
+
+        const dado1 = this.rolarDado()
+        const dado2 = this.rolarDado()
+        
+        
+        const jogadorAtual = this.jogadores[this.jogadorAtualIndex]
+        jogadorAtual.mover(dado1 + dado2)
+
+        // Passa a vez para o próximo jogador -- "MOCKANDO" o turno por enquanto
+        this.jogadorAtualIndex = (this.jogadorAtualIndex + 1) % this.jogadores.length
+
+        return { dado1, dado2 }
     }
 
     toObject(): JogoOutput {
