@@ -15,28 +15,28 @@ export interface CriarJogoInput {
 }
 
 export interface JogoInput {
-    jogadores: JogadorInput[]
+    jogadores: Jogador[]
     estado: ESTADO_JOGO
     personagemVencedor: string | null
+    indiceJogadorAtual: number
 }
 
-export interface JogoOutput {
+export interface JogoOutput extends Omit<JogoInput, 'jogadores'> {
     jogadores: JogadorOutput[]
-    estado: ESTADO_JOGO
-    personagemVencedor: string | null
 }
 
 export class Jogo {
     private jogadores: Jogador[]
     private estado: ESTADO_JOGO
     private personagemVencedor: string | null
-    private jogadorAtualIndex: number
+    private indiceJogadorAtual: number
 
     static criar(jogadores: CriarJogadorInput[]) {
         const jogo = new Jogo({
             estado: ESTADO_JOGO.EM_ANDAMENTO,
-            jogadores,
+            jogadores: jogadores.map(jogador => Jogador.create(jogador)),
             personagemVencedor: null,
+            indiceJogadorAtual: 0,
         })
 
         return jogo
@@ -66,7 +66,7 @@ export class Jogo {
 
         if (data.personagemVencedor) {
             const personagemVencedorExiste = data.jogadores.some(
-                jogador => jogador.personagem === data.personagemVencedor!,
+                jogador => jogador.getPersonagem() === data.personagemVencedor!,
             )
 
             if (!personagemVencedorExiste) {
@@ -76,10 +76,10 @@ export class Jogo {
             }
         }
 
-        this.jogadores = data.jogadores.map(jogador => new Jogador(jogador))
+        this.jogadores = data.jogadores
         this.estado = data.estado
         this.personagemVencedor = data.personagemVencedor ?? null
-        this.jogadorAtualIndex = 0 
+        this.indiceJogadorAtual = 0
     }
 
     private rolarDado(): number {
@@ -93,13 +93,13 @@ export class Jogo {
 
         const dado1 = this.rolarDado()
         const dado2 = this.rolarDado()
-        
-        
-        const jogadorAtual = this.jogadores[this.jogadorAtualIndex]
+
+        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
         jogadorAtual.mover(dado1 + dado2)
 
         // Passa a vez para o próximo jogador -- "MOCKANDO" o turno por enquanto
-        this.jogadorAtualIndex = (this.jogadorAtualIndex + 1) % this.jogadores.length
+        this.indiceJogadorAtual =
+            (this.indiceJogadorAtual + 1) % this.jogadores.length
 
         return { dado1, dado2 }
     }
@@ -109,6 +109,7 @@ export class Jogo {
             jogadores: this.jogadores.map(jogador => jogador.toObject()),
             estado: this.estado,
             personagemVencedor: this.personagemVencedor,
+            indiceJogadorAtual: this.indiceJogadorAtual,
         }
     }
 }
