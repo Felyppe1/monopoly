@@ -7,6 +7,7 @@ import { corParaTailwind } from '@/utils/mapeamento'
 import { Terreno } from './Terreno'
 import { Button } from '@/components/ui/button'
 import { useJogoStore } from '@/store/useJogoStore'
+import { COR_ENUM } from '@/domain/Carta'
 
 const gerarPontosDado = (numero: number) => {
     const pontos = [
@@ -335,16 +336,25 @@ export function Tabuleiro() {
                 `,
             }}
         >
-            {terrenos.map((terreno, i) => {
+            {estadoJogo.espacosTabuleiro.map((espaco, i) => {
+                const personagensNaPosicao = estadoJogo.jogadores
+                    .filter(jogador => jogador.posicao === espaco.posicao)
+                    .map(jogador => jogador.personagem)
+
+                console.log(espaco)
                 return (
                     <Terreno
                         key={i}
                         posicao={i}
-                        tipo={terreno.tipo as any}
-                        nome={terreno.nome}
-                        valor={terreno.valor}
-                        cor={terreno.cor}
-                        personagens={terreno.jogadores as any}
+                        tipo={espaco.tipo}
+                        nome={espaco.nome}
+                        cor={espaco.tituloDePosse?.cor}
+                        valor={
+                            espaco.tituloDePosse?.preco ||
+                            espaco.cartaEstacaoDeMetro?.preco ||
+                            espaco.cartaCompanhia?.preco
+                        }
+                        personagens={personagensNaPosicao}
                     />
                 )
             })}

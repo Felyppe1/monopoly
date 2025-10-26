@@ -1,23 +1,15 @@
+import { COR_ENUM } from '@/domain/Carta'
+import { TIPO_ESPACO_ENUM } from '@/domain/EspacoDoTabuleiro'
+import { PERSONAGEM } from '@/domain/jogador'
 import { corParaTailwind } from '@/utils/mapeamento'
 
 interface TerrenoProps {
     posicao: number
-    ehLateral?: boolean
-    tipo:
-        | 'propriedade'
-        | 'imposto'
-        | 'companhia'
-        | 'estação de metrô'
-        | 'prisão'
-        | 'sorte'
-        | 'cofre'
-        | 'ponto de partida'
-        | 'estacionamento'
-        | 'vá para prisão'
+    tipo: TIPO_ESPACO_ENUM
     nome?: string
     valor?: number
-    cor?: string
-    personagens?: ('pato' | 'carro')[]
+    cor?: COR_ENUM
+    personagens?: PERSONAGEM[]
 }
 
 export function Terreno({

@@ -10,14 +10,29 @@ export enum COR_ENUM {
     MARROM = 'marrom',
 }
 
-export abstract class CartaEvento {
+export interface CartaInput {
+    nome: string
+    valorHipoteca: number
+    preco: number
+}
+
+export interface CartaOutput extends CartaInput {}
+
+export abstract class Carta {
     protected nome: string
     protected valorHipoteca: number
+    protected preco: number
 
-    constructor(nome: string, valorHipoteca: number) {
+    constructor(nome: string, valorHipoteca: number, preco: number) {
         if (!nome) throw new Error('Nome é obrigatório.')
+        if (!valorHipoteca) throw new Error('Valor de hipoteca é obrigatório.')
+        if (!preco) throw new Error('Preço é obrigatório.')
+
+        if (preco < 0) throw new Error('Preço deve ser maior ou igual a zero.')
+
         this.nome = nome
         this.valorHipoteca = valorHipoteca
+        this.preco = preco
     }
 
     getNome() {
@@ -28,10 +43,11 @@ export abstract class CartaEvento {
         return this.valorHipoteca
     }
 
-    toObject() {
+    toObject(): CartaOutput {
         return {
             nome: this.nome,
             valorHipoteca: this.valorHipoteca,
+            preco: this.preco,
         }
     }
 }
@@ -41,8 +57,9 @@ export interface TituloDePosseInput {
     valorHipoteca: number
     cor: COR_ENUM
     valorAluguel: number[]
-    precoPorCasa: number
+    precoCasa: number
     precoHotel: number
+    preco: number
 }
 
 // Correção aplicada: definido explicitamente, sem 'propriedade'
@@ -51,14 +68,15 @@ export type TituloDePosseOutput = {
     valorHipoteca: number
     cor: COR_ENUM
     valorAluguel: number[]
-    precoPorCasa: number
+    precoCasa: number
     precoHotel: number
+    preco: number
 }
 
-export class TituloDePosse extends CartaEvento {
+export class TituloDePosse extends Carta {
     private cor: COR_ENUM
     private valorAluguel: number[]
-    private precoPorCasa: number
+    private precoCasa: number
     private precoHotel: number
 
     constructor({
@@ -66,19 +84,20 @@ export class TituloDePosse extends CartaEvento {
         valorHipoteca,
         cor,
         valorAluguel,
-        precoPorCasa,
+        precoCasa,
         precoHotel,
+        preco,
     }: TituloDePosseInput) {
-        super(nome, valorHipoteca)
+        super(nome, valorHipoteca, preco)
 
         if (!valorAluguel || valorAluguel.length === 0)
             throw new Error('Valores de aluguel são obrigatórios.')
-        if (precoPorCasa <= 0) throw new Error('Preço por casa inválido.')
+        if (precoCasa <= 0) throw new Error('Preço da casa inválido.')
         if (precoHotel <= 0) throw new Error('Preço do hotel inválido.')
 
         this.cor = cor
         this.valorAluguel = valorAluguel
-        this.precoPorCasa = precoPorCasa
+        this.precoCasa = precoCasa
         this.precoHotel = precoHotel
     }
 
@@ -95,7 +114,7 @@ export class TituloDePosse extends CartaEvento {
             ...super.toObject(),
             cor: this.cor,
             valorAluguel: this.valorAluguel,
-            precoPorCasa: this.precoPorCasa,
+            precoCasa: this.precoCasa,
             precoHotel: this.precoHotel,
         }
     }
@@ -109,23 +128,14 @@ export interface CompanhiaInput {
 
 export type CompanhiaOutput = CompanhiaInput
 
-export class Companhia extends CartaEvento {
-    private preco: number
-
+export class Companhia extends Carta {
     constructor({ nome, valorHipoteca, preco }: CompanhiaInput) {
-        super(nome, valorHipoteca)
-        if (preco <= 0) throw new Error('Preço inválido.')
-        this.preco = preco
-    }
-
-    getPreco() {
-        return this.preco
+        super(nome, valorHipoteca, preco)
     }
 
     toObject(): CompanhiaOutput {
         return {
             ...super.toObject(),
-            preco: this.preco,
         }
     }
 }
@@ -139,9 +149,8 @@ export interface EstacaoDeMetroInput {
 
 export type EstacaoDeMetroOutput = EstacaoDeMetroInput
 
-export class EstacaoDeMetro extends CartaEvento {
+export class EstacaoDeMetro extends Carta {
     private valorAluguel: number[]
-    private preco: number
 
     constructor({
         nome,
@@ -149,13 +158,11 @@ export class EstacaoDeMetro extends CartaEvento {
         valorAluguel,
         preco,
     }: EstacaoDeMetroInput) {
-        super(nome, valorHipoteca)
+        super(nome, valorHipoteca, preco)
         if (!valorAluguel || valorAluguel.length === 0)
             throw new Error('Valores de aluguel são obrigatórios.')
-        if (preco <= 0) throw new Error('Preço inválido.')
 
         this.valorAluguel = valorAluguel
-        this.preco = preco
     }
 
     getValorAluguel(nEstacoes: number): number {
@@ -164,15 +171,10 @@ export class EstacaoDeMetro extends CartaEvento {
         ]
     }
 
-    getPreco() {
-        return this.preco
-    }
-
     toObject(): EstacaoDeMetroOutput {
         return {
             ...super.toObject(),
             valorAluguel: this.valorAluguel,
-            preco: this.preco,
         }
     }
 }

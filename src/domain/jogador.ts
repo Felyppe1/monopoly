@@ -1,3 +1,5 @@
+import { Carta } from './Carta'
+
 export enum PERSONAGEM {
     CACHORRO = 'cachorro',
     CARRO = 'carro',
@@ -13,6 +15,7 @@ export interface JogadorInput {
     nome: string
     personagem: PERSONAGEM
     posicao: number
+    cartas: Carta[]
 }
 
 export interface JogadorOutput extends JogadorInput {}
@@ -26,12 +29,13 @@ export class Jogador {
     private nome: string
     private personagem: PERSONAGEM
     private posicao: number
+    private cartas: Carta[]
 
     static create({ nome, personagem }: CriarJogadorInput) {
-        return new Jogador({ nome, personagem, posicao: 0 })
+        return new Jogador({ nome, personagem, posicao: 0, cartas: [] })
     }
 
-    constructor({ nome, personagem, posicao }: JogadorInput) {
+    constructor({ nome, personagem, posicao, cartas }: JogadorInput) {
         if (!nome) {
             throw new Error('Nome do jogador é obrigatório')
         }
@@ -44,9 +48,14 @@ export class Jogador {
             throw new Error('Posição do jogador deve estar entre 0 e 39')
         }
 
+        if (!cartas) {
+            throw new Error('Cartas do jogador são obrigatórias')
+        }
+
         this.nome = nome
         this.personagem = personagem
         this.posicao = posicao
+        this.cartas = cartas
     }
 
     mover(casas: number) {
@@ -63,6 +72,7 @@ export class Jogador {
             nome: this.nome,
             personagem: this.personagem,
             posicao: this.posicao,
+            cartas: this.cartas,
         }
     }
 }
