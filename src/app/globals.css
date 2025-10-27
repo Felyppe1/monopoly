@@ -6,7 +6,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-    --laranja: #ff3e00;
+    --laranja: #ff6f00;
     --azul-claro: #7dbaff;
     --roxo: #7928ca;
     --rosa: #ff0080;
