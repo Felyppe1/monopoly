@@ -16,6 +16,7 @@ export interface JogadorInput {
     personagem: PERSONAGEM
     posicao: number
     cartas: Carta[]
+    saldo: number
 }
 
 export interface JogadorOutput extends JogadorInput {}
@@ -23,6 +24,7 @@ export interface JogadorOutput extends JogadorInput {}
 export interface CriarJogadorInput {
     nome: string
     personagem: PERSONAGEM
+    saldo?: number
 }
 
 export class Jogador {
@@ -30,9 +32,17 @@ export class Jogador {
     private personagem: PERSONAGEM
     private posicao: number
     private cartas: Carta[]
+    private saldo: number
 
     static create({ nome, personagem }: CriarJogadorInput) {
-        return new Jogador({ nome, personagem, posicao: 0, cartas: [] })
+        const SALDO_INICIAL = 1500
+        return new Jogador({
+            nome,
+            personagem,
+            posicao: 0,
+            cartas: [],
+            saldo: SALDO_INICIAL,
+        })
     }
 
     constructor({ nome, personagem, posicao, cartas }: JogadorInput) {
@@ -56,11 +66,28 @@ export class Jogador {
         this.personagem = personagem
         this.posicao = posicao
         this.cartas = cartas
+        this.saldo = 1500
     }
 
     mover(casas: number) {
         const TOTAL_CASAS = 40 // Total de casas no tabuleiro do Monopoly
+        const posicaoAnterior = this.posicao
         this.posicao = (this.posicao + casas) % TOTAL_CASAS
+
+        if (this.posicao < posicaoAnterior) {
+            this.saldo += 200 // Recebe $200 ao passar pela casa "Início"
+            console.log(
+                `${this.nome} passou pela casa Início e recebeu $200! Novo saldo: $${this.saldo}`,
+            )
+        }
+    }
+
+    receber(valor: number) {
+        this.saldo += valor
+    }
+
+    getSaldo() {
+        return this.saldo
     }
 
     getPersonagem() {
@@ -73,6 +100,7 @@ export class Jogador {
             personagem: this.personagem,
             posicao: this.posicao,
             cartas: this.cartas,
+            saldo: this.saldo,
         }
     }
 }
