@@ -49,6 +49,36 @@
     --sidebar-ring: oklch(0.708 0 0);
 }
 
+@layer utilities {
+    .laranja {
+        background: var(--laranja);
+  }
+    .marrom {
+        background: var(--marrom);
+  }
+    .amarelo {
+        background: var(--amarelo);
+    }
+    .verde {
+        background: var(--verde);
+    }
+    .azul-claro{
+        background: var(--azul-claro);
+
+    }
+    .rosa{
+        background: var(--rosa);
+    }
+    .roxo{
+        background: var(--roxo);
+    }
+    .vermelho{
+        background: var(--vermelho);
+    }
+    .amarelo{
+        background: var(--amarelo);
+    }
+}
 @theme inline {
     --color-laranja: var(--laranja);
     --color-azul-claro: var(--azul-claro);
