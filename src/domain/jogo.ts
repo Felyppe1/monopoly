@@ -84,6 +84,18 @@ export class Jogo {
             throw new Error('O jogo suporta no máximo oito jogadores')
         }
 
+        for (const jogador of data.jogadores) {
+            const personagensRepetidos = data.jogadores.filter(
+                j => j.getPersonagem() === jogador.getPersonagem(),
+            )
+
+            if (personagensRepetidos.length > 1) {
+                throw new Error(
+                    'Não pode haver jogadores com personagens repetidos',
+                )
+            }
+        }
+
         if (data.personagemVencedor && data.estado !== ESTADO_JOGO.FINALIZADO) {
             throw new Error(
                 'O jogo só pode ter um personagemVencedor se estiver finalizado',
@@ -226,7 +238,6 @@ export class Jogo {
     }
 
     toObject(): JogoOutput {
-        console.log(this.espacosTabuleiro)
         return {
             jogadores: this.jogadores.map(jogador => jogador.toObject()),
             estado: this.estado,
@@ -234,7 +245,6 @@ export class Jogo {
             indiceJogadorAtual: this.indiceJogadorAtual,
             cartas: this.cartas.map(carta => carta.toObject()),
             espacosTabuleiro: this.espacosTabuleiro.map(espaco => {
-                console.log(espaco)
                 return espaco.toObject()
             }),
         }

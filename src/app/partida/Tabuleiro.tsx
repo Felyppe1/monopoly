@@ -341,7 +341,6 @@ export function Tabuleiro() {
                     .filter(jogador => jogador.posicao === espaco.posicao)
                     .map(jogador => jogador.personagem)
 
-                console.log(espaco)
                 return (
                     <Terreno
                         key={i}
