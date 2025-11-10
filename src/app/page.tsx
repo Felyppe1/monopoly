@@ -47,7 +47,6 @@ export default function Home() {
     ])
 
     const setJogo = useJogoStore(state => state.setJogo)
-    const setEstadoJogo = useJogoStore(state => state.setEstadoJogo)
 
     const router = useRouter()
 
@@ -100,10 +99,6 @@ export default function Home() {
     const iniciarJogo = () => {
         try {
             const jogo = Jogo.criar(jogadores)
-
-            const estadoJogo = jogo.toObject()
-
-            setEstadoJogo(estadoJogo)
 
             setJogo(jogo)
 
