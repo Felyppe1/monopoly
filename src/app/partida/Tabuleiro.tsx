@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Image from 'next/image'
 
-import { corParaTailwind } from '@/utils/mapeamento'
 import { Terreno } from './Terreno'
 import { Button } from '@/components/ui/button'
 import { useJogoStore } from '@/store/useJogoStore'
@@ -341,6 +340,7 @@ export function Tabuleiro() {
                     .filter(jogador => jogador.posicao === espaco.posicao)
                     .map(jogador => jogador.personagem)
 
+                console.log(espaco)
                 return (
                     <Terreno
                         key={i}

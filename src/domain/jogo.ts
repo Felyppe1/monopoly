@@ -1,7 +1,6 @@
 import {
     COR_ENUM,
     EstacaoDeMetro as CartaEstacaoDeMetro,
-    Companhia as CartaCompanhia,
     TituloDePosse,
     Carta,
     CartaOutput,
@@ -160,11 +159,7 @@ export class Jogo {
         })
 
         const companhias = companhiaDados.map(dado => {
-            return new CartaCompanhia({
-                nome: dado.nome,
-                preco: dado.preco,
-                valorHipoteca: dado.valorHipoteca,
-            })
+            return new Carta(dado.nome, dado.valorHipoteca, dado.preco)
         })
 
         const terrenos = terrenoDados.map((dado, index) => {

@@ -1,11 +1,12 @@
 import {
+    Carta,
+    CartaOutput,
     TituloDePosse,
     TituloDePosseOutput,
     EstacaoDeMetro as CartaEstacaoDeMetro,
     EstacaoDeMetroOutput as CartaEstacaoDeMetroOutput,
-    Companhia as CartaCompanhia,
-    CompanhiaOutput as CartaCompanhiaOutput,
 } from './Carta'
+import { NomeEspaco } from './dados/nome-espacos'
 
 export enum TIPO_ESPACO_ENUM {
     PROPRIEDADE = 'propriedade',
@@ -21,7 +22,7 @@ export enum TIPO_ESPACO_ENUM {
 }
 
 export interface EspacoDoTabuleiroInput {
-    nome: string
+    nome: NomeEspaco
     posicao: number
     tipo: TIPO_ESPACO_ENUM
 }
@@ -29,11 +30,11 @@ export interface EspacoDoTabuleiroInput {
 export interface EspacoDoTabuleiroOutput extends EspacoDoTabuleiroInput {}
 
 export class EspacoDoTabuleiro {
-    nome: string
+    nome: NomeEspaco
     posicao: number
     tipo: TIPO_ESPACO_ENUM
 
-    constructor(nome: string, posicao: number, tipo: TIPO_ESPACO_ENUM) {
+    constructor(nome: NomeEspaco, posicao: number, tipo: TIPO_ESPACO_ENUM) {
         if (!nome) throw new Error('Nome do espaço é obrigatório.')
         if (posicao < 0) throw new Error('Posição inválida.')
         this.nome = nome
@@ -41,7 +42,7 @@ export class EspacoDoTabuleiro {
         this.tipo = tipo
     }
 
-    toObject() {
+    toObject(): EspacoDoTabuleiroOutput {
         return {
             nome: this.nome,
             posicao: this.posicao,
@@ -100,15 +101,15 @@ export class EstacaoDeMetro extends EspacoDoTabuleiro {
 }
 
 export interface CompanhiaInput extends Omit<EspacoDoTabuleiroInput, 'tipo'> {
-    cartaCompanhia: CartaCompanhia
+    cartaCompanhia: Carta
 }
 
 export interface CompanhiaOutput extends EspacoDoTabuleiroOutput {
-    cartaCompanhia: CartaCompanhiaOutput
+    cartaCompanhia: CartaOutput
 }
 
 export class Companhia extends EspacoDoTabuleiro {
-    cartaCompanhia: CartaCompanhia
+    cartaCompanhia: Carta
 
     constructor(data: CompanhiaInput) {
         super(data.nome, data.posicao, TIPO_ESPACO_ENUM.COMPANHIA)

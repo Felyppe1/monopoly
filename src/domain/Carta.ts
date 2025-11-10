@@ -1,3 +1,5 @@
+import { NomeEspaco } from './dados/nome-espacos'
+
 export enum COR_ENUM {
     AZUL = 'azul',
     AZUL_CLARO = 'azul-claro',
@@ -11,19 +13,19 @@ export enum COR_ENUM {
 }
 
 export interface CartaInput {
-    nome: string
+    nome: NomeEspaco
     valorHipoteca: number
     preco: number
 }
 
 export interface CartaOutput extends CartaInput {}
 
-export abstract class Carta {
-    protected nome: string
+export class Carta {
+    protected nome: NomeEspaco
     protected valorHipoteca: number
     protected preco: number
 
-    constructor(nome: string, valorHipoteca: number, preco: number) {
+    constructor(nome: NomeEspaco, valorHipoteca: number, preco: number) {
         if (!nome) throw new Error('Nome é obrigatório.')
         if (!valorHipoteca) throw new Error('Valor de hipoteca é obrigatório.')
         if (!preco) throw new Error('Preço é obrigatório.')
@@ -53,7 +55,7 @@ export abstract class Carta {
 }
 
 export interface TituloDePosseInput {
-    nome: string
+    nome: NomeEspaco
     valorHipoteca: number
     cor: COR_ENUM
     valorAluguel: number[]
@@ -64,7 +66,7 @@ export interface TituloDePosseInput {
 
 // Correção aplicada: definido explicitamente, sem 'propriedade'
 export type TituloDePosseOutput = {
-    nome: string
+    nome: NomeEspaco
     valorHipoteca: number
     cor: COR_ENUM
     valorAluguel: number[]
@@ -120,28 +122,8 @@ export class TituloDePosse extends Carta {
     }
 }
 
-export interface CompanhiaInput {
-    nome: string
-    valorHipoteca: number
-    preco: number
-}
-
-export type CompanhiaOutput = CompanhiaInput
-
-export class Companhia extends Carta {
-    constructor({ nome, valorHipoteca, preco }: CompanhiaInput) {
-        super(nome, valorHipoteca, preco)
-    }
-
-    toObject(): CompanhiaOutput {
-        return {
-            ...super.toObject(),
-        }
-    }
-}
-
 export interface EstacaoDeMetroInput {
-    nome: string
+    nome: NomeEspaco
     valorHipoteca: number
     valorAluguel: number[]
     preco: number
