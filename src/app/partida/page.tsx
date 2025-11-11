@@ -56,7 +56,10 @@ export default function Partida() {
                                                     {jogador.nome}
                                                 </span>
                                                 <span className="font-extrabold text-lg">
-                                                    R$ 1.500
+                                                    R${' '}
+                                                    {jogador.saldo.toLocaleString(
+                                                        'pt-BR',
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>

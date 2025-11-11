@@ -92,7 +92,7 @@ export class TituloDePosse extends Carta {
         this.precoHotel = precoHotel
     }
 
-    getCor() {
+    getCor(): COR_ENUM {
         return this.cor
     }
 
