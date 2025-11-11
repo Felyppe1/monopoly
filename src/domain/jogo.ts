@@ -1,16 +1,10 @@
+import { Banco, BancoOutput } from './banco'
 import {
     EstacaoDeMetro as CartaEstacaoDeMetro,
     Companhia as CartaCompanhia,
     TituloDePosse,
-    CartaOutputUnion,
-    Carta,
 } from './Carta'
-import {
-    companhiaDados,
-    estacaoDeMetroDados,
-    terrenoDados,
-    tituloDePosseDados,
-} from './dados'
+import { terrenoDados } from './dados'
 import {
     Companhia,
     EspacoDoTabuleiro,
@@ -41,14 +35,14 @@ export interface JogoInput {
     personagemVencedor: PERSONAGEM | null
     indiceJogadorAtual: number
     espacosTabuleiro: EspacoDoTabuleiro[]
-    cartas: Carta[]
+    banco: Banco
 }
 
 export interface JogoOutput
-    extends Omit<JogoInput, 'jogadores' | 'espacosTabuleiro' | 'cartas'> {
+    extends Omit<JogoInput, 'jogadores' | 'espacosTabuleiro' | 'banco'> {
     jogadores: JogadorOutput[]
     espacosTabuleiro: EspacoDoTabuleiroOutputUnion[]
-    cartas: CartaOutputUnion[]
+    banco: BancoOutput
 }
 
 export class Jogo {
@@ -57,10 +51,12 @@ export class Jogo {
     private personagemVencedor: PERSONAGEM | null
     private indiceJogadorAtual: number
     private espacosTabuleiro: EspacoDoTabuleiro[]
-    private cartas: Carta[]
+    private banco: Banco
 
     static criar(jogadores: CriarJogadorInput[]) {
-        const { terrenos, cartas } = this.createEspacosECartas()
+        const banco = Banco.criar()
+
+        const terrenos = this.criarEspacos(banco)
 
         const jogo = new Jogo({
             estado: ESTADO_JOGO.EM_ANDAMENTO,
@@ -68,7 +64,7 @@ export class Jogo {
             personagemVencedor: null,
             indiceJogadorAtual: 0,
             espacosTabuleiro: terrenos,
-            cartas: cartas,
+            banco: banco,
         })
 
         return jogo
@@ -124,8 +120,8 @@ export class Jogo {
             throw new Error('O tabuleiro precisa ter exatamente 40 espaços')
         }
 
-        if (!data.cartas) {
-            throw new Error('As cartas do jogo são obrigatórias')
+        if (!data.banco) {
+            throw new Error('O banco do jogo é obrigatório')
         }
 
         this.jogadores = data.jogadores
@@ -133,44 +129,15 @@ export class Jogo {
         this.personagemVencedor = data.personagemVencedor ?? null
         this.indiceJogadorAtual = 0
         this.espacosTabuleiro = data.espacosTabuleiro
-        this.cartas = data.cartas
+        this.banco = data.banco
     }
 
-    private static createEspacosECartas() {
-        const titulosDePosse = tituloDePosseDados.map(dado => {
-            return new TituloDePosse({
-                nome: dado.nome,
-                valorHipoteca: dado.valorHipoteca,
-                cor: dado.cor,
-                valorAluguel: dado.valoresAluguel,
-                precoCasa: dado.precoCasa,
-                precoHotel: dado.precoHotel,
-                preco: dado.preco,
-            })
-        })
-
-        const estacoesDeMetro = estacaoDeMetroDados.map(dado => {
-            return new CartaEstacaoDeMetro({
-                nome: dado.nome,
-                preco: dado.preco,
-                valorHipoteca: dado.valorHipoteca,
-                valorAluguel: dado.valoresAluguel,
-            })
-        })
-
-        const companhias = companhiaDados.map(dado => {
-            return new CartaCompanhia({
-                nome: dado.nome,
-                valorHipoteca: dado.valorHipoteca,
-                preco: dado.preco,
-            })
-        })
-
+    private static criarEspacos(banco: Banco) {
         const terrenos = terrenoDados.map((dado, index) => {
             if (dado.tipo === TIPO_ESPACO_ENUM.PROPRIEDADE) {
-                const tituloDePosse = titulosDePosse.find(
-                    titulo => titulo.getNome() === dado.nome,
-                )!
+                const tituloDePosse = banco.getCarta(
+                    dado.nome,
+                )! as TituloDePosse
 
                 return new Propriedade({
                     nome: dado.nome,
@@ -180,9 +147,9 @@ export class Jogo {
             }
 
             if (dado.tipo === TIPO_ESPACO_ENUM.ESTACAO_DE_METRO) {
-                const estacaoDeMetro = estacoesDeMetro.find(
-                    estacao => estacao.getNome() === dado.nome,
-                )!
+                const estacaoDeMetro = banco.getCarta(
+                    dado.nome,
+                )! as CartaEstacaoDeMetro
 
                 return new EstacaoDeMetro({
                     nome: dado.nome,
@@ -192,9 +159,7 @@ export class Jogo {
             }
 
             if (dado.tipo === TIPO_ESPACO_ENUM.COMPANHIA) {
-                const companhia = companhias.find(
-                    companhia => companhia.getNome() === dado.nome,
-                )!
+                const companhia = banco.getCarta(dado.nome)! as CartaCompanhia
 
                 return new Companhia({
                     nome: dado.nome,
@@ -210,12 +175,7 @@ export class Jogo {
             })
         })
 
-        const cartas = [...titulosDePosse, ...estacoesDeMetro, ...companhias]
-
-        return {
-            terrenos,
-            cartas,
-        }
+        return terrenos
     }
 
     private rolarDado(): number {
@@ -246,10 +206,10 @@ export class Jogo {
             estado: this.estado,
             personagemVencedor: this.personagemVencedor,
             indiceJogadorAtual: this.indiceJogadorAtual,
-            cartas: this.cartas.map(carta => carta.toObject()),
             espacosTabuleiro: this.espacosTabuleiro.map(espaco => {
                 return espaco.toObject() as EspacoDoTabuleiroOutputUnion
             }),
+            banco: this.banco.toObject(),
         }
     }
 }
