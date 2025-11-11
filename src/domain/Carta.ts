@@ -20,7 +20,12 @@ export interface CartaInput {
 
 export interface CartaOutput extends CartaInput {}
 
-export class Carta {
+export type CartaOutputUnion =
+    | TituloDePosseOutput
+    | EstacaoDeMetroOutput
+    | CompanhiaOutput
+
+export abstract class Carta {
     protected nome: NomeEspaco
     protected valorHipoteca: number
     protected preco: number
@@ -45,34 +50,18 @@ export class Carta {
         return this.valorHipoteca
     }
 
-    toObject(): CartaOutput {
-        return {
-            nome: this.nome,
-            valorHipoteca: this.valorHipoteca,
-            preco: this.preco,
-        }
-    }
+    abstract toObject(): CartaOutputUnion
 }
 
-export interface TituloDePosseInput {
-    nome: NomeEspaco
-    valorHipoteca: number
+export interface TituloDePosseInput extends CartaInput {
     cor: COR_ENUM
     valorAluguel: number[]
     precoCasa: number
     precoHotel: number
-    preco: number
 }
 
-// Correção aplicada: definido explicitamente, sem 'propriedade'
-export type TituloDePosseOutput = {
-    nome: NomeEspaco
-    valorHipoteca: number
-    cor: COR_ENUM
-    valorAluguel: number[]
-    precoCasa: number
-    precoHotel: number
-    preco: number
+export interface TituloDePosseOutput extends TituloDePosseInput {
+    tipo: 'TituloDePosse'
 }
 
 export class TituloDePosse extends Carta {
@@ -113,23 +102,25 @@ export class TituloDePosse extends Carta {
 
     toObject(): TituloDePosseOutput {
         return {
-            ...super.toObject(),
+            nome: this.nome,
+            valorHipoteca: this.valorHipoteca,
+            preco: this.preco,
             cor: this.cor,
             valorAluguel: this.valorAluguel,
             precoCasa: this.precoCasa,
             precoHotel: this.precoHotel,
+            tipo: 'TituloDePosse',
         }
     }
 }
 
-export interface EstacaoDeMetroInput {
-    nome: NomeEspaco
-    valorHipoteca: number
+export interface EstacaoDeMetroInput extends CartaInput {
     valorAluguel: number[]
-    preco: number
 }
 
-export type EstacaoDeMetroOutput = EstacaoDeMetroInput
+export interface EstacaoDeMetroOutput extends EstacaoDeMetroInput {
+    tipo: 'EstacaoDeMetro'
+}
 
 export class EstacaoDeMetro extends Carta {
     private valorAluguel: number[]
@@ -155,8 +146,32 @@ export class EstacaoDeMetro extends Carta {
 
     toObject(): EstacaoDeMetroOutput {
         return {
-            ...super.toObject(),
+            nome: this.nome,
+            valorHipoteca: this.valorHipoteca,
+            preco: this.preco,
             valorAluguel: this.valorAluguel,
+            tipo: 'EstacaoDeMetro',
+        }
+    }
+}
+
+interface CompanhiaInput extends CartaInput {}
+
+export interface CompanhiaOutput extends CartaOutput {
+    tipo: 'Companhia'
+}
+
+export class Companhia extends Carta {
+    constructor(data: CompanhiaInput) {
+        super(data.nome, data.valorHipoteca, data.preco)
+    }
+
+    toObject(): CompanhiaOutput {
+        return {
+            nome: this.nome,
+            valorHipoteca: this.valorHipoteca,
+            preco: this.preco,
+            tipo: 'Companhia',
         }
     }
 }

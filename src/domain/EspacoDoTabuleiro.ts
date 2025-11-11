@@ -5,6 +5,8 @@ import {
     TituloDePosseOutput,
     EstacaoDeMetro as CartaEstacaoDeMetro,
     EstacaoDeMetroOutput as CartaEstacaoDeMetroOutput,
+    Companhia as CartaCompanhia,
+    CompanhiaOutput as CartaCompanhiaOutput,
 } from './Carta'
 import { NomeEspaco } from './dados/nome-espacos'
 
@@ -124,16 +126,16 @@ export class EstacaoDeMetro extends EspacoDoTabuleiro {
 }
 
 export interface CompanhiaInput extends Omit<EspacoDoTabuleiroInput, 'tipo'> {
-    cartaCompanhia: Carta
+    cartaCompanhia: CartaCompanhia
 }
 
 export interface CompanhiaOutput extends EspacoDoTabuleiroBaseOutput {
     tipo: TIPO_ESPACO_ENUM.COMPANHIA
-    cartaCompanhia: CartaOutput
+    cartaCompanhia: CartaCompanhiaOutput
 }
 
 export class Companhia extends EspacoDoTabuleiro {
-    cartaCompanhia: Carta
+    cartaCompanhia: CartaCompanhia
 
     constructor({ nome, posicao, cartaCompanhia }: CompanhiaInput) {
         super({ nome, posicao, tipo: TIPO_ESPACO_ENUM.COMPANHIA })

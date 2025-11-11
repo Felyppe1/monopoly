@@ -1,9 +1,9 @@
 import {
-    COR_ENUM,
     EstacaoDeMetro as CartaEstacaoDeMetro,
+    Companhia as CartaCompanhia,
     TituloDePosse,
+    CartaOutputUnion,
     Carta,
-    CartaOutput,
 } from './Carta'
 import {
     companhiaDados,
@@ -48,7 +48,7 @@ export interface JogoOutput
     extends Omit<JogoInput, 'jogadores' | 'espacosTabuleiro' | 'cartas'> {
     jogadores: JogadorOutput[]
     espacosTabuleiro: EspacoDoTabuleiroOutputUnion[]
-    cartas: CartaOutput[]
+    cartas: CartaOutputUnion[]
 }
 
 export class Jogo {
@@ -159,7 +159,11 @@ export class Jogo {
         })
 
         const companhias = companhiaDados.map(dado => {
-            return new Carta(dado.nome, dado.valorHipoteca, dado.preco)
+            return new CartaCompanhia({
+                nome: dado.nome,
+                valorHipoteca: dado.valorHipoteca,
+                preco: dado.preco,
+            })
         })
 
         const terrenos = terrenoDados.map((dado, index) => {
