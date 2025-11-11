@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { Terreno } from './Terreno'
 import { Button } from '@/components/ui/button'
 import { useJogoStore } from '@/store/useJogoStore'
+import { TIPO_ESPACO_ENUM } from '@/domain/EspacoDoTabuleiro'
 
 const gerarPontosDado = (numero: number) => {
     const pontos = [
@@ -87,18 +88,42 @@ export function Tabuleiro() {
                     .filter(jogador => jogador.posicao === espaco.posicao)
                     .map(jogador => jogador.personagem)
 
+                const getPropriedades = () => {
+                    if (espaco.tipo === TIPO_ESPACO_ENUM.PROPRIEDADE) {
+                        return {
+                            cor: espaco.tituloDePosse.cor,
+                            valor: espaco.tituloDePosse.preco,
+                        }
+                    }
+
+                    if (espaco.tipo === TIPO_ESPACO_ENUM.ESTACAO_DE_METRO) {
+                        return {
+                            valor: espaco.cartaEstacaoDeMetro.preco,
+                        }
+                    }
+
+                    if (espaco.tipo === TIPO_ESPACO_ENUM.COMPANHIA) {
+                        return {
+                            valor: espaco.cartaCompanhia.preco,
+                        }
+                    }
+
+                    return {}
+                }
+
                 return (
                     <Terreno
                         key={i}
                         posicao={i}
                         tipo={espaco.tipo}
                         nome={espaco.nome}
-                        cor={espaco.tituloDePosse?.cor}
-                        valor={
-                            espaco.tituloDePosse?.preco ||
-                            espaco.cartaEstacaoDeMetro?.preco ||
-                            espaco.cartaCompanhia?.preco
-                        }
+                        {...getPropriedades()}
+                        // cor={espaco.tituloDePosse?.cor}
+                        // valor={
+                        //     espaco.tituloDePosse?.preco ||
+                        //     espaco.cartaEstacaoDeMetro?.preco ||
+                        //     espaco.cartaCompanhia?.preco
+                        // }
                         personagens={personagensNaPosicao}
                     />
                 )

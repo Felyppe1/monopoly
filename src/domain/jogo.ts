@@ -14,7 +14,7 @@ import {
 import {
     Companhia,
     EspacoDoTabuleiro,
-    EspacoDoTabuleiroOutput,
+    EspacoDoTabuleiroOutputUnion,
     EstacaoDeMetro,
     Propriedade,
     TIPO_ESPACO_ENUM,
@@ -47,7 +47,7 @@ export interface JogoInput {
 export interface JogoOutput
     extends Omit<JogoInput, 'jogadores' | 'espacosTabuleiro' | 'cartas'> {
     jogadores: JogadorOutput[]
-    espacosTabuleiro: EspacoDoTabuleiroOutput[]
+    espacosTabuleiro: EspacoDoTabuleiroOutputUnion[]
     cartas: CartaOutput[]
 }
 
@@ -199,7 +199,11 @@ export class Jogo {
                 })
             }
 
-            return new EspacoDoTabuleiro(dado.nome, dado.posicao, dado.tipo)
+            return new EspacoDoTabuleiro({
+                nome: dado.nome,
+                posicao: dado.posicao,
+                tipo: dado.tipo,
+            })
         })
 
         const cartas = [...titulosDePosse, ...estacoesDeMetro, ...companhias]
@@ -240,7 +244,7 @@ export class Jogo {
             indiceJogadorAtual: this.indiceJogadorAtual,
             cartas: this.cartas.map(carta => carta.toObject()),
             espacosTabuleiro: this.espacosTabuleiro.map(espaco => {
-                return espaco.toObject()
+                return espaco.toObject() as EspacoDoTabuleiroOutputUnion
             }),
         }
     }
