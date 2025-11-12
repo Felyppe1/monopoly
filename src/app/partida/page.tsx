@@ -51,10 +51,12 @@ export default function Partida() {
                                                 alt=""
                                                 className="w-14 h-14"
                                             />
+
                                             <div className="flex flex-col items-start">
                                                 <span className="font-semibold text-md leading-4.5 text-left">
                                                     {jogador.nome}
                                                 </span>
+
                                                 <span className="font-extrabold text-lg">
                                                     R${' '}
                                                     {jogador.saldo.toLocaleString(
@@ -63,50 +65,70 @@ export default function Partida() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="bg-[#8FCBBB] w-[60%] px-4 py-1 rounded-r-md text-neutral-800">
-                                            <div className="flex items-center gap-2">
+                                        <div
+                                            className="bg-[#8FCBBB] w-[60%] 
+px-4 py-1 rounded-r-md text-neutral-800"
+                                        >
+                                            <div
+                                                className={`flex items-center gap-2 ${jogador.estaPreso && 'text-red-700'}`}
+                                            >
                                                 <MapPin
                                                     size={16}
-                                                    className="fill-neutral-700"
+                                                    className={`${jogador.estaPreso ? 'fill-red-700' : 'fill-neutral-800'}`}
                                                 />
-                                                <span className="font-bold text-md">
-                                                    {espacoTabuleiro.nome}
+                                                <span className="font-bold">
+                                                    {jogador.estaPreso
+                                                        ? 'NA PRISÃO (' +
+                                                          jogador.turnosNaPrisao +
+                                                          '/3)'
+                                                        : espacoTabuleiro.nome}
                                                 </span>
                                             </div>
+
                                             <div className="flex flex-col items-start">
                                                 <span className="font-bold text-md mb-0.5">
                                                     Propriedades
                                                 </span>
                                                 <div className="flex gap-1 flex-wrap">
                                                     <div className="w-3 h-4 border-2 border-laranja"></div>
+
                                                     <div className="w-3 h-4 border-2 border-laranja"></div>
                                                     <div className="w-3 h-4 border-2 border-laranja"></div>
 
                                                     <div className="w-3 h-4 border-2 border-vermelho"></div>
                                                     <div className="w-3 h-4 border-2 border-vermelho"></div>
+
                                                     <div className="w-3 h-4 border-2 border-vermelho"></div>
 
                                                     <div className="w-3 h-4 border-2"></div>
+
                                                     <div className="w-3 h-4 border-2"></div>
                                                     <div className="w-3 h-4 border-2"></div>
 
                                                     <div className="w-3 h-4 border-2"></div>
+
                                                     <div className="w-3 h-4 border-2"></div>
 
                                                     {/* <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
+                                        
+            <div className='w-3 h-4 border-2'></div>
 
                                                     <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
-
-                                                    <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
+                              
+                      <div className='w-3 h-4 border-2'></div>
                                                     <div className='w-3 h-4 border-2'></div>
 
+                    
+                                <div className='w-3 h-4 border-2'></div>
                                                     <div className='w-3 h-4 border-2'></div>
+          
+                                          <div className='w-3 h-4 border-2'></div>
+
+                                                    <div className='w-3 h-4 
+border-2'></div>
                                                     <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div> */}
+                                             
+       <div className='w-3 h-4 border-2'></div> */}
                                                 </div>
                                             </div>
                                         </div>

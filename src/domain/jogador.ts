@@ -17,6 +17,9 @@ export interface JogadorInput {
     posicao: number
     cartas: Carta[]
     saldo: number
+    estaPreso: boolean
+    turnosNaPrisao: number
+    tentativasDuplo: number
 }
 
 export interface JogadorOutput extends JogadorInput {}
@@ -33,6 +36,9 @@ export class Jogador {
     private posicao: number
     private cartas: Carta[]
     private saldo: number
+    private estaPreso: boolean
+    private turnosNaPrisao: number
+    private tentativasDuplo: number
 
     static create({ nome, personagem }: CriarJogadorInput) {
         const SALDO_INICIAL = 1500
@@ -41,11 +47,22 @@ export class Jogador {
             personagem,
             posicao: 0,
             cartas: [],
+            estaPreso: false,
+            turnosNaPrisao: 0,
+            tentativasDuplo: 0,
             saldo: SALDO_INICIAL,
         })
     }
 
-    constructor({ nome, personagem, posicao, cartas }: JogadorInput) {
+    constructor({
+        nome,
+        personagem,
+        posicao,
+        cartas,
+        estaPreso,
+        turnosNaPrisao,
+        tentativasDuplo,
+    }: JogadorInput) {
         if (!nome) {
             throw new Error('Nome do jogador é obrigatório')
         }
@@ -67,6 +84,45 @@ export class Jogador {
         this.posicao = posicao
         this.cartas = cartas
         this.saldo = 1500
+        this.estaPreso = estaPreso
+        this.turnosNaPrisao = turnosNaPrisao
+        this.tentativasDuplo = tentativasDuplo
+    }
+
+    irParaPrisao() {
+        this.posicao = 10
+        this.estaPreso = true
+        this.turnosNaPrisao = 0
+        this.tentativasDuplo = 0
+    }
+
+    tentarSairDaPrisao() {
+        if (!this.estaPreso) return
+        this.tentativasDuplo += 1
+        this.turnosNaPrisao += 1
+    }
+
+    sairDaPrisao() {
+        this.estaPreso = false
+        this.turnosNaPrisao = 0
+        this.tentativasDuplo = 0
+    }
+
+    pagarFianca() {
+        this.saldo -= 50
+        this.sairDaPrisao()
+    }
+
+    getEstaPreso() {
+        return this.estaPreso
+    }
+
+    getTurnosNaPrisao() {
+        return this.turnosNaPrisao
+    }
+
+    getTentativasDuplo() {
+        return this.tentativasDuplo
     }
 
     mover(casas: number) {
@@ -86,6 +142,10 @@ export class Jogador {
         this.saldo += valor
     }
 
+    pagar(valor: number) {
+        this.saldo -= valor
+    }
+
     getSaldo() {
         return this.saldo
     }
@@ -101,6 +161,9 @@ export class Jogador {
             posicao: this.posicao,
             cartas: this.cartas,
             saldo: this.saldo,
+            estaPreso: this.estaPreso,
+            turnosNaPrisao: this.turnosNaPrisao,
+            tentativasDuplo: this.tentativasDuplo,
         }
     }
 }

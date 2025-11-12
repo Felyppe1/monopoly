@@ -182,22 +182,65 @@ export class Jogo {
         return Math.floor(Math.random() * 6) + 1
     }
 
-    jogarDados(): { dado1: number; dado2: number } {
+    jogarDados(): {
+        dado1: number
+        dado2: number
+        saiuDaPrisao: boolean
+        jogadorPermaneceuPreso: boolean
+        jogadorFoiParaPrisao: boolean
+    } {
         if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
             throw new Error('O jogo já está finalizado')
         }
 
         const dado1 = this.rolarDado()
         const dado2 = this.rolarDado()
+        const eDuplo = dado1 === dado2
+
+        let saiuDaPrisao = false
 
         const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
-        jogadorAtual.mover(dado1 + dado2)
+
+        if (jogadorAtual.getEstaPreso()) {
+            jogadorAtual.tentarSairDaPrisao()
+
+            if (eDuplo) {
+                jogadorAtual.sairDaPrisao()
+                saiuDaPrisao = true
+
+                jogadorAtual.mover(dado1 + dado2)
+            } else if (jogadorAtual.getTentativasDuplo() === 3) {
+                jogadorAtual.pagar(50)
+                jogadorAtual.sairDaPrisao()
+                saiuDaPrisao = true
+                jogadorAtual.mover(dado1 + dado2)
+            } else {
+                jogadorAtual.pagar(50)
+            }
+        } else {
+            jogadorAtual.mover(dado1 + dado2)
+
+            const espacoAtual =
+                this.espacosTabuleiro[jogadorAtual.toObject().posicao]
+            if (
+                espacoAtual.tipo === TIPO_ESPACO_ENUM.VA_PARA_PRISAO ||
+                espacoAtual.tipo === TIPO_ESPACO_ENUM.PRISAO
+            ) {
+                jogadorAtual.irParaPrisao()
+            }
+        }
 
         // Passa a vez para o próximo jogador -- "MOCKANDO" o turno por enquanto
         this.indiceJogadorAtual =
             (this.indiceJogadorAtual + 1) % this.jogadores.length
 
-        return { dado1, dado2 }
+        return {
+            dado1,
+            dado2,
+            saiuDaPrisao,
+            jogadorPermaneceuPreso: jogadorAtual.getEstaPreso(),
+            jogadorFoiParaPrisao: jogadorAtual.getEstaPreso() && !saiuDaPrisao,
+        }
     }
 
     toObject(): JogoOutput {
