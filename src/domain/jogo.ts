@@ -5,6 +5,7 @@ import {
     TituloDePosse,
 } from './Carta'
 import { terrenoDados } from './dados'
+import { NomeEspaco } from './dados/nome-espacos'
 import {
     Companhia,
     EspacoDoTabuleiro,
@@ -36,6 +37,7 @@ export interface JogoInput {
     indiceJogadorAtual: number
     espacosTabuleiro: EspacoDoTabuleiro[]
     banco: Banco
+    quantidadeDuplas: number
 }
 
 export interface JogoOutput
@@ -51,6 +53,7 @@ export class Jogo {
     private personagemVencedor: PERSONAGEM | null
     private indiceJogadorAtual: number
     private espacosTabuleiro: EspacoDoTabuleiro[]
+    private quantidadeDuplas: number
     private banco: Banco
 
     static criar(jogadores: CriarJogadorInput[]) {
@@ -65,6 +68,7 @@ export class Jogo {
             indiceJogadorAtual: 0,
             espacosTabuleiro: terrenos,
             banco: banco,
+            quantidadeDuplas: 0,
         })
 
         return jogo
@@ -124,12 +128,20 @@ export class Jogo {
             throw new Error('O banco do jogo é obrigatório')
         }
 
+        if (
+            data.quantidadeDuplas === undefined ||
+            data.quantidadeDuplas === null
+        ) {
+            throw new Error('A quantidade de duplas é obrigatória')
+        }
+
         this.jogadores = data.jogadores
         this.estado = data.estado
         this.personagemVencedor = data.personagemVencedor ?? null
         this.indiceJogadorAtual = 0
         this.espacosTabuleiro = data.espacosTabuleiro
         this.banco = data.banco
+        this.quantidadeDuplas = data.quantidadeDuplas
     }
 
     private static criarEspacos(banco: Banco) {
@@ -187,17 +199,36 @@ export class Jogo {
             throw new Error('O jogo já está finalizado')
         }
 
+        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
+
         const dado1 = this.rolarDado()
         const dado2 = this.rolarDado()
 
-        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
-        jogadorAtual.mover(dado1 + dado2)
+        if (dado1 === dado2) {
+            this.quantidadeDuplas += 1
 
-        // Passa a vez para o próximo jogador -- "MOCKANDO" o turno por enquanto
-        this.indiceJogadorAtual =
-            (this.indiceJogadorAtual + 1) % this.jogadores.length
+            if (this.quantidadeDuplas === 3) {
+                // Envia o jogador para a prisão
+                jogadorAtual.mover(10 - jogadorAtual.getPosicao())
+
+                this.quantidadeDuplas = 0
+            }
+        } else {
+            this.quantidadeDuplas = 0
+
+            jogadorAtual.mover(dado1 + dado2)
+
+            this.indiceJogadorAtual =
+                (this.indiceJogadorAtual + 1) % this.jogadores.length
+        }
 
         return { dado1, dado2 }
+    }
+
+    comprarEspaco(nomeEspaco: NomeEspaco) {
+        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
+
+        jogadorAtual.comprarCarta(this.banco, nomeEspaco)
     }
 
     toObject(): JogoOutput {
@@ -210,6 +241,7 @@ export class Jogo {
                 return espaco.toObject() as EspacoDoTabuleiroOutputUnion
             }),
             banco: this.banco.toObject(),
+            quantidadeDuplas: this.quantidadeDuplas,
         }
     }
 }

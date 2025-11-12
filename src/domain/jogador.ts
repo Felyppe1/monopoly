@@ -1,4 +1,6 @@
+import { Banco } from './banco'
 import { Carta } from './Carta'
+import { NomeEspaco } from './dados/nome-espacos'
 
 export enum PERSONAGEM {
     CACHORRO = 'cachorro',
@@ -88,6 +90,26 @@ export class Jogador {
 
     getSaldo() {
         return this.saldo
+    }
+
+    getPosicao() {
+        return this.posicao
+    }
+
+    comprarCarta(banco: Banco, nomeEspaco: NomeEspaco) {
+        const carta = banco.retirarCarta(nomeEspaco)
+
+        if (!carta) {
+            throw new Error('Carta não está à venda no banco')
+        }
+
+        if (this.saldo < carta.getPreco()) {
+            banco.devolverCarta(carta)
+            throw new Error('Saldo insuficiente para comprar essa carta')
+        }
+
+        this.saldo -= carta.getPreco()
+        this.cartas.push(carta)
     }
 
     getPersonagem() {

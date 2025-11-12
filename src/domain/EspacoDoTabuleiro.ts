@@ -51,9 +51,9 @@ export interface EspacoDoTabuleiroExcludeOutput
 export interface EspacoDoTabuleiroOutput extends EspacoDoTabuleiroInput {}
 
 export class EspacoDoTabuleiro {
-    nome: NomeEspaco
-    posicao: number
-    tipo: TIPO_ESPACO_ENUM
+    protected nome: NomeEspaco
+    protected posicao: number
+    protected tipo: TIPO_ESPACO_ENUM
 
     constructor(data: EspacoDoTabuleiroInput) {
         if (!data.nome) throw new Error('Nome do espaço é obrigatório.')
@@ -61,6 +61,10 @@ export class EspacoDoTabuleiro {
         this.nome = data.nome
         this.posicao = data.posicao
         this.tipo = data.tipo
+    }
+
+    getNome(): NomeEspaco {
+        return this.nome
     }
 
     toObject(): EspacoDoTabuleiroOutput {

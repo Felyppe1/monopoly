@@ -70,6 +70,23 @@ export class Banco {
         return carta
     }
 
+    retirarCarta(nome: NomeEspaco) {
+        const cartaIndex = this.cartas.findIndex(
+            carta => carta.getNome() === nome,
+        )
+
+        if (cartaIndex === -1) {
+            return null
+        }
+
+        const [carta] = this.cartas.splice(cartaIndex, 1)
+        return carta
+    }
+
+    devolverCarta(carta: Carta) {
+        this.cartas.push(carta)
+    }
+
     toObject(): BancoOutput {
         return {
             cartas: this.cartas.map(carta => carta.toObject()),

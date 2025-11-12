@@ -46,6 +46,10 @@ export abstract class Carta {
         return this.nome
     }
 
+    getPreco() {
+        return this.preco
+    }
+
     getValorHipoteca() {
         return this.valorHipoteca
     }
