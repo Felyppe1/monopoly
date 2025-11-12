@@ -208,37 +208,8 @@ export class Jogo {
     }
 
     private rolarDado(): number {
-        this.jogouOsDados = true
         return Math.floor(Math.random() * 6) + 1
     }
-
-    // jjogarDados(): { dado1: number; dado2: number } {
-    //     if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
-    //         throw new Error('O jogo já está finalizado')
-    //     }
-
-    //     const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
-
-    //     const dado1 = this.rolarDado()
-    //     const dado2 = this.rolarDado()
-
-    //     if (dado1 === dado2) {
-    //         this.quantidadeDuplas += 1
-
-    //         if (this.quantidadeDuplas === 3) {
-    //             // Envia o jogador para a prisão
-    //             jogadorAtual.mover(10 - jogadorAtual.getPosicao())
-
-    //             this.quantidadeDuplas = 0
-    //         }
-    //     } else {
-    //         this.quantidadeDuplas = 0
-
-    //         jogadorAtual.mover(dado1 + dado2)
-    //     }
-
-    //     return { dado1, dado2 }
-    // }
 
     jogarDados(): {
         dado1: number
@@ -256,34 +227,31 @@ export class Jogo {
         const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
 
         if (jogadorAtual.getEstaPreso()) {
-            jogadorAtual.tentarSairDaPrisao()
-
-            if (eDuplo) {
-                jogadorAtual.sairDaPrisao()
-
-                jogadorAtual.mover(dado1 + dado2)
-            } else if (jogadorAtual.getTentativasDuplo() === 3) {
-                jogadorAtual.mover(dado1 + dado2)
-            }
+            jogadorAtual.tentarSairDaPrisao(dado1, dado2)
         } else {
+            jogadorAtual.mover(dado1 + dado2)
+
             const espacoAtual = this.espacosTabuleiro[jogadorAtual.getPosicao()]
 
             if (eDuplo) {
                 this.quantidadeDuplas += 1
 
-                if (
-                    this.quantidadeDuplas === 3 ||
-                    espacoAtual.getTipo() === TIPO_ESPACO_ENUM.VA_PARA_PRISAO ||
-                    espacoAtual.getTipo() === TIPO_ESPACO_ENUM.PRISAO
-                ) {
+                if (this.quantidadeDuplas === 3) {
                     jogadorAtual.irParaPrisao()
 
                     this.quantidadeDuplas = 0
                 }
             } else {
                 this.quantidadeDuplas = 0
+            }
 
-                jogadorAtual.mover(dado1 + dado2)
+            if (
+                espacoAtual.getTipo() === TIPO_ESPACO_ENUM.VA_PARA_PRISAO ||
+                espacoAtual.getTipo() === TIPO_ESPACO_ENUM.PRISAO
+            ) {
+                jogadorAtual.irParaPrisao()
+
+                this.quantidadeDuplas = 0
             }
         }
 
@@ -293,6 +261,21 @@ export class Jogo {
             dado1,
             dado2,
         }
+    }
+
+    virarTurno() {
+        if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
+            throw new Error('O jogo já está finalizado')
+        }
+
+        if (this.quantidadeDuplas > 0) {
+            throw new Error('O jogador atual deve jogar novamente')
+        }
+
+        this.indiceJogadorAtual =
+            (this.indiceJogadorAtual + 1) % this.jogadores.length
+
+        this.jogouOsDados = false
     }
 
     // TODO: se tiver mais lugares que precisam da informação dos dados, salvar na classe Jogo
@@ -372,19 +355,6 @@ export class Jogo {
         const espaco = this.espacosTabuleiro[posicao]
 
         jogadorAtual.comprarCarta(this.banco, espaco.getNome())
-    }
-
-    virarTurno() {
-        if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
-            throw new Error('O jogo já está finalizado')
-        }
-
-        if (this.quantidadeDuplas > 0) {
-            throw new Error('O jogador atual deve jogar novamente')
-        }
-
-        this.indiceJogadorAtual =
-            (this.indiceJogadorAtual + 1) % this.jogadores.length
     }
 
     private getProprietario(nomeEspaco: NomeEspaco) {
