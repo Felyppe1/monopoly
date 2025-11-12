@@ -7,7 +7,6 @@ import { useJogoStore } from '@/store/useJogoStore'
 
 export default function Partida() {
     const estadoJogo = useJogoStore(state => state.estadoJogo)!
-
     return (
         <div className="flex justify-between">
             <Tabuleiro />
@@ -35,10 +34,12 @@ export default function Partida() {
                                                 alt=""
                                                 className="w-14 h-14"
                                             />
+
                                             <div className="flex flex-col items-start">
                                                 <span className="font-semibold text-md leading-4.5 text-left">
                                                     {jogador.nome}
                                                 </span>
+
                                                 <span className="font-extrabold text-lg">
                                                     R${' '}
                                                     {jogador.saldo.toLocaleString(
@@ -47,50 +48,83 @@ export default function Partida() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="bg-[#8FCBBB] w-[60%] px-4 py-1 rounded-r-md text-neutral-800">
-                                            <div className="flex items-center gap-2">
-                                                <MapPin
-                                                    size={16}
-                                                    className="fill-neutral-700"
-                                                />
-                                                <span className="font-bold text-md">
-                                                    {espacoTabuleiro.nome}
-                                                </span>
-                                            </div>
+                                        <div
+                                            className="bg-[#8FCBBB] w-[60%] 
+px-4 py-1 rounded-r-md text-neutral-800"
+                                        >
+                                            {/* INÍCIO DO NOVO BLOCO CONDICIONAL PARA PRISÃO */}
+                                            {jogador.estaPreso ? (
+                                                <div className="flex items-center gap-2 text-red-700">
+                                                    <MapPin
+                                                        size={16}
+                                                        className="fill-red-700"
+                                                    />
+                                                    <span className="font-bold text-md">
+                                                        NA PRISÃO (
+                                                        {jogador.turnosNaPrisao}
+                                                        /3)
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin
+                                                        size={16}
+                                                        className="fill-neutral-700"
+                                                    />
+                                                    <span
+                                                        className="font-bold 
+text-md"
+                                                    >
+                                                        {espacoTabuleiro.nome}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {/* FIM DO NOVO BLOCO CONDICIONAL */}
+
                                             <div className="flex flex-col items-start">
                                                 <span className="font-bold text-md mb-0.5">
                                                     Propriedades
                                                 </span>
                                                 <div className="flex gap-1 flex-wrap">
                                                     <div className="w-3 h-4 border-2 border-laranja"></div>
+
                                                     <div className="w-3 h-4 border-2 border-laranja"></div>
                                                     <div className="w-3 h-4 border-2 border-laranja"></div>
 
                                                     <div className="w-3 h-4 border-2 border-vermelho"></div>
                                                     <div className="w-3 h-4 border-2 border-vermelho"></div>
+
                                                     <div className="w-3 h-4 border-2 border-vermelho"></div>
 
                                                     <div className="w-3 h-4 border-2"></div>
+
                                                     <div className="w-3 h-4 border-2"></div>
                                                     <div className="w-3 h-4 border-2"></div>
 
                                                     <div className="w-3 h-4 border-2"></div>
+
                                                     <div className="w-3 h-4 border-2"></div>
 
                                                     {/* <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
+                                        
+            <div className='w-3 h-4 border-2'></div>
 
                                                     <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
-
-                                                    <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
+                              
+                      <div className='w-3 h-4 border-2'></div>
                                                     <div className='w-3 h-4 border-2'></div>
 
+                    
+                                <div className='w-3 h-4 border-2'></div>
                                                     <div className='w-3 h-4 border-2'></div>
+          
+                                          <div className='w-3 h-4 border-2'></div>
+
+                                                    <div className='w-3 h-4 
+border-2'></div>
                                                     <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div> */}
+                                             
+       <div className='w-3 h-4 border-2'></div> */}
                                                 </div>
                                             </div>
                                         </div>

@@ -8,7 +8,11 @@ interface JogoStore {
     setJogo: (jogo: Jogo) => void
     setEstadoJogo: (estado: JogoOutput) => void
     resetarJogo: () => void
-    jogarDados: () => { dado1: number; dado2: number } | null
+    jogarDados: () => {
+        dado1: number
+        dado2: number
+        saiuDaPrisao: boolean
+    } | null
 }
 
 const estadoInicial = {
@@ -34,7 +38,7 @@ export const useJogoStore = create<JogoStore>((set, get) => ({
     jogarDados: () => {
         const { jogo } = get()
         if (!jogo) return null
-        
+
         const resultado = jogo.jogarDados()
         set(() => ({ estadoJogo: jogo.toObject() }))
         return resultado
