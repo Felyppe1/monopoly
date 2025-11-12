@@ -47,17 +47,15 @@ export default function Home() {
     ])
 
     const setJogo = useJogoStore(state => state.setJogo)
-    const setEstadoJogo = useJogoStore(state => state.setEstadoJogo)
 
     const router = useRouter()
 
     const adicionarJogador = () => {
         if (jogadores.length < 8) {
             const personagensDisponiveis = Object.values(PERSONAGEM).filter(
-                personagem => !jogadores.some(j => j.personagem !== personagem),
+                personagem => !jogadores.some(j => j.personagem === personagem),
             )
-            const personagemDisponivel =
-                personagensDisponiveis[jogadores.length % 2]
+            const personagemDisponivel = personagensDisponiveis[0]
 
             setJogadores([
                 ...jogadores,
@@ -101,10 +99,6 @@ export default function Home() {
     const iniciarJogo = () => {
         try {
             const jogo = Jogo.criar(jogadores)
-
-            const estadoJogo = jogo.toObject()
-
-            setEstadoJogo(estadoJogo)
 
             setJogo(jogo)
 
@@ -154,20 +148,42 @@ export default function Home() {
                                     <div
                                         className="w-20 h-20 bg-cyan-200 rounded-lg border-2 border-teal-600 flex items-center justify-center cursor-pointer"
                                         onClick={() => {
-                                            const proximoPersonagem =
-                                                personagens[
-                                                    (personagens.findIndex(
-                                                        p =>
-                                                            p.id ===
-                                                            jogador.personagem,
-                                                    ) +
-                                                        1) %
-                                                        personagens.length
-                                                ]
-                                            selecionarPersonagem(
-                                                jogador.id,
-                                                proximoPersonagem.id as any,
-                                            )
+                                            const personagensUsados = jogadores
+                                                .filter(
+                                                    j => j.id !== jogador.id,
+                                                )
+                                                .map(j => j.personagem)
+
+                                            const personagemAtualIndex =
+                                                personagens.findIndex(
+                                                    p =>
+                                                        p.id ===
+                                                        jogador.personagem,
+                                                )
+
+                                            for (
+                                                let i = 1;
+                                                i <= personagens.length;
+                                                i++
+                                            ) {
+                                                const proximoIndex =
+                                                    (personagemAtualIndex + i) %
+                                                    personagens.length
+                                                const proximoPersonagem =
+                                                    personagens[proximoIndex]
+
+                                                if (
+                                                    !personagensUsados.includes(
+                                                        proximoPersonagem.id,
+                                                    )
+                                                ) {
+                                                    selecionarPersonagem(
+                                                        jogador.id,
+                                                        proximoPersonagem.id,
+                                                    )
+                                                    return
+                                                }
+                                            }
                                         }}
                                     >
                                         <img

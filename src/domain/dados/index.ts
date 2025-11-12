@@ -1,7 +1,16 @@
 import { COR_ENUM } from '../Carta'
 import { TIPO_ESPACO_ENUM } from '../EspacoDoTabuleiro'
+import { NomeEspaco } from './nome-espacos'
 
-export const tituloDePosseDados = [
+export const tituloDePosseDados: {
+    nome: NomeEspaco
+    preco: number
+    valorHipoteca: number
+    cor: COR_ENUM
+    valoresAluguel: number[]
+    precoCasa: number
+    precoHotel: number
+}[] = [
     // Marrom
     {
         nome: 'Av. Sumaré',
@@ -217,7 +226,12 @@ export const tituloDePosseDados = [
     },
 ]
 
-export const estacaoDeMetroDados = [
+export const estacaoDeMetroDados: {
+    nome: NomeEspaco
+    valorHipoteca: number
+    valoresAluguel: number[]
+    preco: number
+}[] = [
     {
         nome: 'Estação do Maracanã',
         valorHipoteca: 100,
@@ -244,7 +258,11 @@ export const estacaoDeMetroDados = [
     },
 ]
 
-export const companhiaDados = [
+export const companhiaDados: {
+    nome: NomeEspaco
+    valorHipoteca: number
+    preco: number
+}[] = [
     {
         nome: 'Companhia Elétrica',
         valorHipoteca: 75,
@@ -257,7 +275,11 @@ export const companhiaDados = [
     },
 ]
 
-export const terrenoDados = [
+export const terrenoDados: {
+    nome: NomeEspaco
+    tipo: TIPO_ESPACO_ENUM
+    posicao: number
+}[] = [
     {
         nome: 'Ponto de Partida',
         tipo: TIPO_ESPACO_ENUM.PONTO_DE_PARTIDA,

@@ -4,9 +4,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabuleiro } from './Tabuleiro'
 import { MapPin } from 'lucide-react'
 import { useJogoStore } from '@/store/useJogoStore'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function Partida() {
-    const estadoJogo = useJogoStore(state => state.estadoJogo)!
+    const jogo = useJogoStore(state => state.jogo)
+
+    const router = useRouter()
+
+    useEffect(() => {
+        if (!jogo) {
+            router.push('/')
+        }
+    }, [jogo, router])
+
+    if (!jogo) {
+        return null
+    }
+
+    const estadoJogo = jogo.toObject()
+
     return (
         <div className="flex justify-between">
             <Tabuleiro />
