@@ -203,7 +203,7 @@ export class Jogo {
         return Math.floor(Math.random() * 6) + 1
     }
 
-    jogarDados(): { dado1: number; dado2: number } {
+    jogarDadoss(): { dado1: number; dado2: number } {
         if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
             throw new Error('O jogo já está finalizado')
         }
