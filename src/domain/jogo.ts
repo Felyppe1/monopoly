@@ -39,6 +39,7 @@ export interface JogoInput {
     espacosTabuleiro: EspacoDoTabuleiro[]
     banco: Banco
     quantidadeDuplas: number
+    jogouOsDados: boolean
 }
 
 export interface JogoOutput
@@ -56,6 +57,7 @@ export class Jogo {
     private espacosTabuleiro: EspacoDoTabuleiro[]
     private quantidadeDuplas: number
     private banco: Banco
+    private jogouOsDados: boolean
 
     static criar(jogadores: CriarJogadorInput[]) {
         const banco = Banco.criar()
@@ -70,6 +72,7 @@ export class Jogo {
             espacosTabuleiro: terrenos,
             banco: banco,
             quantidadeDuplas: 0,
+            jogouOsDados: false,
         })
 
         return jogo
@@ -136,6 +139,10 @@ export class Jogo {
             throw new Error('A quantidade de duplas é obrigatória')
         }
 
+        if (data.jogouOsDados === undefined || data.jogouOsDados === null) {
+            throw new Error('O status de jogou os dados é obrigatório')
+        }
+
         this.jogadores = data.jogadores
         this.estado = data.estado
         this.personagemVencedor = data.personagemVencedor ?? null
@@ -143,6 +150,7 @@ export class Jogo {
         this.espacosTabuleiro = data.espacosTabuleiro
         this.banco = data.banco
         this.quantidadeDuplas = data.quantidadeDuplas
+        this.jogouOsDados = data.jogouOsDados
     }
 
     private static criarEspacos(banco: Banco) {
@@ -200,35 +208,91 @@ export class Jogo {
     }
 
     private rolarDado(): number {
+        this.jogouOsDados = true
         return Math.floor(Math.random() * 6) + 1
     }
 
-    jogarDadoss(): { dado1: number; dado2: number } {
+    // jjogarDados(): { dado1: number; dado2: number } {
+    //     if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
+    //         throw new Error('O jogo já está finalizado')
+    //     }
+
+    //     const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
+
+    //     const dado1 = this.rolarDado()
+    //     const dado2 = this.rolarDado()
+
+    //     if (dado1 === dado2) {
+    //         this.quantidadeDuplas += 1
+
+    //         if (this.quantidadeDuplas === 3) {
+    //             // Envia o jogador para a prisão
+    //             jogadorAtual.mover(10 - jogadorAtual.getPosicao())
+
+    //             this.quantidadeDuplas = 0
+    //         }
+    //     } else {
+    //         this.quantidadeDuplas = 0
+
+    //         jogadorAtual.mover(dado1 + dado2)
+    //     }
+
+    //     return { dado1, dado2 }
+    // }
+
+    jogarDados(): {
+        dado1: number
+        dado2: number
+    } {
         if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
             throw new Error('O jogo já está finalizado')
         }
 
-        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
-
         const dado1 = this.rolarDado()
         const dado2 = this.rolarDado()
 
-        if (dado1 === dado2) {
-            this.quantidadeDuplas += 1
+        const eDuplo = dado1 === dado2
 
-            if (this.quantidadeDuplas === 3) {
-                // Envia o jogador para a prisão
-                jogadorAtual.mover(10 - jogadorAtual.getPosicao())
+        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
 
-                this.quantidadeDuplas = 0
+        if (jogadorAtual.getEstaPreso()) {
+            jogadorAtual.tentarSairDaPrisao()
+
+            if (eDuplo) {
+                jogadorAtual.sairDaPrisao()
+
+                jogadorAtual.mover(dado1 + dado2)
+            } else if (jogadorAtual.getTentativasDuplo() === 3) {
+                jogadorAtual.mover(dado1 + dado2)
             }
         } else {
-            this.quantidadeDuplas = 0
+            const espacoAtual = this.espacosTabuleiro[jogadorAtual.getPosicao()]
 
-            jogadorAtual.mover(dado1 + dado2)
+            if (eDuplo) {
+                this.quantidadeDuplas += 1
+
+                if (
+                    this.quantidadeDuplas === 3 ||
+                    espacoAtual.getTipo() === TIPO_ESPACO_ENUM.VA_PARA_PRISAO ||
+                    espacoAtual.getTipo() === TIPO_ESPACO_ENUM.PRISAO
+                ) {
+                    jogadorAtual.irParaPrisao()
+
+                    this.quantidadeDuplas = 0
+                }
+            } else {
+                this.quantidadeDuplas = 0
+
+                jogadorAtual.mover(dado1 + dado2)
+            }
         }
 
-        return { dado1, dado2 }
+        this.jogouOsDados = true
+
+        return {
+            dado1,
+            dado2,
+        }
     }
 
     // TODO: se tiver mais lugares que precisam da informação dos dados, salvar na classe Jogo
@@ -346,6 +410,7 @@ export class Jogo {
             }),
             banco: this.banco.toObject(),
             quantidadeDuplas: this.quantidadeDuplas,
+            jogouOsDados: this.jogouOsDados,
         }
     }
 }
