@@ -69,34 +69,21 @@ export default function Partida() {
                                             className="bg-[#8FCBBB] w-[60%] 
 px-4 py-1 rounded-r-md text-neutral-800"
                                         >
-                                            {/* INÍCIO DO NOVO BLOCO CONDICIONAL PARA PRISÃO */}
-                                            {jogador.estaPreso ? (
-                                                <div className="flex items-center gap-2 text-red-700">
-                                                    <MapPin
-                                                        size={16}
-                                                        className="fill-red-700"
-                                                    />
-                                                    <span className="font-bold text-md">
-                                                        NA PRISÃO (
-                                                        {jogador.turnosNaPrisao}
-                                                        /3)
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-2">
-                                                    <MapPin
-                                                        size={16}
-                                                        className="fill-neutral-700"
-                                                    />
-                                                    <span
-                                                        className="font-bold 
-text-md"
-                                                    >
-                                                        {espacoTabuleiro.nome}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            {/* FIM DO NOVO BLOCO CONDICIONAL */}
+                                            <div
+                                                className={`flex items-center gap-2 ${jogador.estaPreso && 'text-red-700'}`}
+                                            >
+                                                <MapPin
+                                                    size={16}
+                                                    className={`${jogador.estaPreso ? 'fill-red-700' : 'fill-neutral-800'}`}
+                                                />
+                                                <span className="font-bold">
+                                                    {jogador.estaPreso
+                                                        ? 'NA PRISÃO (' +
+                                                          jogador.turnosNaPrisao +
+                                                          '/3)'
+                                                        : espacoTabuleiro.nome}
+                                                </span>
+                                            </div>
 
                                             <div className="flex flex-col items-start">
                                                 <span className="font-bold text-md mb-0.5">
