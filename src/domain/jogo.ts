@@ -11,6 +11,7 @@ import {
     EspacoDoTabuleiro,
     EspacoDoTabuleiroOutputUnion,
     EstacaoDeMetro,
+    Imposto,
     Propriedade,
     TIPO_ESPACO_ENUM,
 } from './EspacoDoTabuleiro'
@@ -180,6 +181,14 @@ export class Jogo {
                 })
             }
 
+            if (dado.tipo === TIPO_ESPACO_ENUM.IMPOSTO) {
+                return new Imposto({
+                    nome: dado.nome,
+                    posicao: dado.posicao,
+                    aluguel: dado.aluguel!,
+                })
+            }
+
             return new EspacoDoTabuleiro({
                 nome: dado.nome,
                 posicao: dado.posicao,
@@ -217,18 +226,113 @@ export class Jogo {
             this.quantidadeDuplas = 0
 
             jogadorAtual.mover(dado1 + dado2)
-
-            this.indiceJogadorAtual =
-                (this.indiceJogadorAtual + 1) % this.jogadores.length
         }
 
         return { dado1, dado2 }
     }
 
-    comprarEspaco(nomeEspaco: NomeEspaco) {
+    // TODO: se tiver mais lugares que precisam da informação dos dados, salvar na classe Jogo
+    cobrarAluguel(dados?: { dado1: number; dado2: number }) {
+        if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
+            throw new Error('O jogo já está finalizado')
+        }
+
         const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
 
-        jogadorAtual.comprarCarta(this.banco, nomeEspaco)
+        const posicao = jogadorAtual.getPosicao()
+
+        const espaco = this.espacosTabuleiro[posicao]
+
+        if (espaco instanceof Imposto) {
+            const pagamentoRealizado = jogadorAtual.pagar(espaco.getAluguel())
+            return
+        }
+
+        const proprietario = this.getProprietario(espaco.getNome())
+
+        if (proprietario && proprietario !== jogadorAtual) {
+            let valorAluguel = 0
+
+            if (espaco instanceof Propriedade) {
+                const quantidadeTitulosProprietario =
+                    proprietario.getQuantidadeDeTitulos(espaco.getCor())
+
+                const totalTitulos = this.espacosTabuleiro.filter(
+                    espacoTabuleiro =>
+                        espacoTabuleiro.getTipo() ===
+                            TIPO_ESPACO_ENUM.PROPRIEDADE &&
+                        (espacoTabuleiro as Propriedade).getCor() ===
+                            espaco.getCor(),
+                ).length
+
+                valorAluguel =
+                    quantidadeTitulosProprietario === totalTitulos
+                        ? espaco.calcularAluguel(
+                              espaco.getQuantidadeConstrucoes() === 0,
+                          )
+                        : espaco.calcularAluguel(false)
+            } else if (espaco instanceof EstacaoDeMetro) {
+                const quantidadeEstacoes =
+                    proprietario.getQuantidadeDeEstacoesMetro()
+
+                valorAluguel = espaco.calcularAluguel(quantidadeEstacoes)
+            } else if (espaco instanceof Companhia) {
+                const quantidadeCompanhias =
+                    proprietario.getQuantidadeDeCompanhias()
+
+                if (!dados) {
+                    throw new Error(
+                        'Os valores dos dados são necessários para calcular o aluguel da companhia',
+                    )
+                }
+
+                valorAluguel = espaco.calcularAluguel(
+                    quantidadeCompanhias,
+                    dados.dado1 + dados.dado2,
+                )
+            } else {
+                throw new Error('Não é possível cobrar aluguel deste espaço')
+            }
+
+            // TODO: o que acontece se ele não tiver dinheiro? falência?
+            const pagamentoRealizado = jogadorAtual.pagar(valorAluguel)
+            proprietario.receber(valorAluguel)
+        }
+    }
+
+    comprarEspaco() {
+        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
+
+        const posicao = jogadorAtual.getPosicao()
+
+        const espaco = this.espacosTabuleiro[posicao]
+
+        jogadorAtual.comprarCarta(this.banco, espaco.getNome())
+    }
+
+    virarTurno() {
+        if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
+            throw new Error('O jogo já está finalizado')
+        }
+
+        if (this.quantidadeDuplas > 0) {
+            throw new Error('O jogador atual deve jogar novamente')
+        }
+
+        this.indiceJogadorAtual =
+            (this.indiceJogadorAtual + 1) % this.jogadores.length
+    }
+
+    private getProprietario(nomeEspaco: NomeEspaco) {
+        const jogador = this.jogadores.find(jogador =>
+            jogador.getCarta(nomeEspaco),
+        )
+
+        if (!jogador) {
+            return null
+        }
+
+        return jogador
     }
 
     toObject(): JogoOutput {

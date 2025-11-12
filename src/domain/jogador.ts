@@ -1,5 +1,11 @@
 import { Banco } from './banco'
-import { Carta } from './Carta'
+import {
+    Carta,
+    Companhia,
+    COR_ENUM,
+    EstacaoDeMetro,
+    TituloDePosse,
+} from './Carta'
 import { NomeEspaco } from './dados/nome-espacos'
 
 export enum PERSONAGEM {
@@ -103,13 +109,53 @@ export class Jogador {
             throw new Error('Carta não está à venda no banco')
         }
 
-        if (this.saldo < carta.getPreco()) {
+        const pagamentoRealizado = this.pagar(carta.getPreco())
+
+        if (!pagamentoRealizado) {
             banco.devolverCarta(carta)
             throw new Error('Saldo insuficiente para comprar essa carta')
         }
 
-        this.saldo -= carta.getPreco()
         this.cartas.push(carta)
+    }
+
+    pagar(valor: number) {
+        if (this.saldo < valor) {
+            return false
+        }
+
+        this.saldo -= valor
+
+        return true
+    }
+
+    getCarta(nomeEspaco: NomeEspaco) {
+        const carta = this.cartas.find(carta => carta.getNome() === nomeEspaco)
+        return carta || null
+    }
+
+    getQuantidadeDeTitulos(cor: COR_ENUM) {
+        const quantidade = this.cartas.filter(
+            carta => carta instanceof TituloDePosse && carta.getCor() === cor,
+        ).length
+
+        return quantidade
+    }
+
+    getQuantidadeDeEstacoesMetro() {
+        const quantidade = this.cartas.filter(
+            carta => carta instanceof EstacaoDeMetro,
+        ).length
+
+        return quantidade
+    }
+
+    getQuantidadeDeCompanhias() {
+        const quantidade = this.cartas.filter(
+            carta => carta instanceof Companhia,
+        ).length
+
+        return quantidade
     }
 
     getPersonagem() {
