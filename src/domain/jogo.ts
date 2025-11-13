@@ -246,7 +246,6 @@ export class Jogo {
             }
 
             if (
-                espacoAtual.getTipo() === TIPO_ESPACO_ENUM.VA_PARA_PRISAO ||
                 espacoAtual.getTipo() === TIPO_ESPACO_ENUM.PRISAO
             ) {
                 jogadorAtual.irParaPrisao()
