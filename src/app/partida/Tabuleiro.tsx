@@ -7,6 +7,11 @@ import { Terreno } from './Terreno'
 import { Button } from '@/components/ui/button'
 import { useJogoStore } from '@/store/useJogoStore'
 import { TIPO_ESPACO_ENUM } from '@/domain/EspacoDoTabuleiro'
+import { TituloDePosseView } from '@/components/titulo-de-posse'
+import { TituloDePosse } from '@/domain/Carta'
+
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription, } from '@/components/ui/dialog'
+import type { EspacoDoTabuleiroOutputUnion } from '@/domain/EspacoDoTabuleiro'
 
 const gerarPontosDado = (numero: number) => {
     const pontos = [
@@ -35,6 +40,9 @@ export function Tabuleiro() {
     const [dado2, setDado2] = useState(3)
     const [rolando, setRolando] = useState(false)
 
+    const [isComprarModalOpen, setIsComprarModalOpen] = useState(false)
+    const [espacoParaComprar, setEspacoParaComprar,] = useState<EspacoDoTabuleiroOutputUnion | null>(null)
+
     const rolarDados = () => {
         setRolando(true)
 
@@ -54,6 +62,32 @@ export function Tabuleiro() {
             setDado2(resultado.dado2)
 
             setRolando(false)
+
+            const novoEstadoJogo = jogo.toObject()
+            const jogadorAtual = novoEstadoJogo.jogadores[novoEstadoJogo.indiceJogadorAtual]
+
+            const casa = novoEstadoJogo.espacosTabuleiro[jogadorAtual.posicao]
+
+            const eCompravel = [
+                TIPO_ESPACO_ENUM.PROPRIEDADE,
+                TIPO_ESPACO_ENUM.ESTACAO_DE_METRO,
+                TIPO_ESPACO_ENUM.COMPANHIA,
+            ].includes(casa.tipo)
+
+            if (!eCompravel) {
+                return
+            }
+
+            const cartaNoBanco = novoEstadoJogo.banco.cartas.find(carta => carta.nome === casa.nome,)
+
+            if (cartaNoBanco) {
+
+                setEspacoParaComprar(casa)
+                setIsComprarModalOpen(true)
+            } else {
+                console.log('Cobrar Aluguel.')
+                // TODO cobrar Aluguel
+            }
         }, 1500)
     }
 
@@ -61,6 +95,42 @@ export function Tabuleiro() {
         jogo.virarTurno()
 
         setJogo(jogo)
+    }
+
+    const getPrecoEspaco = (
+        espaco: EspacoDoTabuleiroOutputUnion | null,
+    ): number => {
+        if (!espaco) return 0
+        if (espaco.tipo === TIPO_ESPACO_ENUM.PROPRIEDADE) {
+            return espaco.tituloDePosse.preco
+        }
+        if (espaco.tipo === TIPO_ESPACO_ENUM.ESTACAO_DE_METRO) {
+            return espaco.cartaEstacaoDeMetro.preco
+        }
+        if (espaco.tipo === TIPO_ESPACO_ENUM.COMPANHIA) {
+            return espaco.cartaCompanhia.preco
+        }
+        return 0
+    }
+
+    const handleComprar = () => {
+        if (!espacoParaComprar) return
+
+        try {
+            jogo.comprarEspaco()
+            setJogo(jogo)
+        } catch (error) {
+            console.error('Erro ao comprar propriedade:', error)
+        }
+
+        setIsComprarModalOpen(false)
+        setEspacoParaComprar(null)
+    }
+
+    const handleNaoComprar = () => {
+        console.log('Jogador decidiu não comprar.')
+        setIsComprarModalOpen(false)
+        setEspacoParaComprar(null)
     }
 
     return (
@@ -193,6 +263,77 @@ export function Tabuleiro() {
                     </Button>
                 </div>
             </div>
+            <Dialog
+                open={isComprarModalOpen}
+                onOpenChange={setIsComprarModalOpen}
+            >
+                <DialogContent className="sm:max-w-[425px] bg-white text-black">
+                    <DialogHeader>
+                        <DialogTitle>Deseja Comprar?</DialogTitle>
+                        <DialogDescription>
+                            Você parou em{' '}
+                            <span className="font-bold">
+                                {espacoParaComprar?.nome}
+                            </span>
+                            .
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="py-4 space-y-4">
+                        <h3 className="text-lg font-bold text-center">
+                            Preço: ${getPrecoEspaco(espacoParaComprar)}
+                        </h3>
+
+                        <div className="flex justify-center">
+                            {(() => {
+                                if (
+                                    espacoParaComprar &&
+                                    espacoParaComprar.tipo ===
+                                        TIPO_ESPACO_ENUM.PROPRIEDADE
+                                ) {
+                                    // Gambiarra para resolver problema de tipo de objeto
+                                    const titulo = new TituloDePosse(
+                                        espacoParaComprar.tituloDePosse,
+                                    )
+                                    return (
+                                        <TituloDePosseView
+                                            tituloDePosse={titulo}
+                                            size="md"
+                                        />
+                                    )
+                                }
+                                if (
+                                    espacoParaComprar &&
+                                    (espacoParaComprar.tipo ===
+                                        TIPO_ESPACO_ENUM.ESTACAO_DE_METRO ||
+                                    espacoParaComprar.tipo ===
+                                        TIPO_ESPACO_ENUM.COMPANHIA)
+                                ) {
+                                    return (
+                                        <div className="text-center text-sm p-4 bg-gray-100 rounded-md">
+                                            <p>Visualização de Carta Indisponível</p>
+                                        </div>
+                                    )
+                                }
+                                return null
+                            })()}
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="retro"
+                            onClick={handleNaoComprar}
+                            className="bg-gray-300 hover:bg-gray-400 text-black"
+                        >
+                            Não Comprar
+                        </Button>
+                        <Button variant="retro" onClick={handleComprar}>
+                            Comprar
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
