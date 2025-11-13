@@ -57,9 +57,10 @@ export function Tabuleiro() {
         }, 1500)
     }
 
-    const passarVez = () => {
-        // Lógica para passar a vez
-        console.log('Passando a vez...')
+    const virarTurno = () => {
+        jogo.virarTurno()
+
+        setJogo(jogo)
     }
 
     return (
@@ -171,10 +172,25 @@ export function Tabuleiro() {
                 </div>
 
                 <div className="flex flex-col gap-3 z-1">
-                    <Button onClick={rolarDados} disabled={rolando}>
+                    <Button
+                        onClick={rolarDados}
+                        disabled={
+                            rolando ||
+                            (estadoJogo.jogouOsDados &&
+                                estadoJogo.quantidadeDuplas === 0)
+                        }
+                    >
                         {rolando ? 'ROLANDO...' : 'JOGAR DADOS'}
                     </Button>
-                    <Button onClick={passarVez}>TERMINAR TURNO</Button>
+                    <Button
+                        onClick={virarTurno}
+                        disabled={
+                            !estadoJogo.jogouOsDados ||
+                            estadoJogo.quantidadeDuplas > 0
+                        }
+                    >
+                        VIRAR TURNO
+                    </Button>
                 </div>
             </div>
         </div>

@@ -1,4 +1,12 @@
-import { Carta } from './Carta'
+import { Banco } from './banco'
+import {
+    Carta,
+    Companhia,
+    COR_ENUM,
+    EstacaoDeMetro,
+    TituloDePosse,
+} from './Carta'
+import { NomeEspaco } from './dados/nome-espacos'
 
 export enum PERSONAGEM {
     CACHORRO = 'cachorro',
@@ -96,21 +104,26 @@ export class Jogador {
         this.tentativasDuplo = 0
     }
 
-    tentarSairDaPrisao() {
+    tentarSairDaPrisao(dado1: number, dado2: number) {
         if (!this.estaPreso) return
+        this.pagar(50)
         this.tentativasDuplo += 1
         this.turnosNaPrisao += 1
+
+        if (this.tentativasDuplo === 3) {
+            this.sairDaPrisao()
+            this.pagar(50)
+            this.mover(dado1 + dado2)
+        } else if (dado1 === dado2) {
+            this.sairDaPrisao()
+            this.mover(dado1 + dado2)
+        }
     }
 
     sairDaPrisao() {
         this.estaPreso = false
         this.turnosNaPrisao = 0
         this.tentativasDuplo = 0
-    }
-
-    pagarFianca() {
-        this.saldo -= 50
-        this.sairDaPrisao()
     }
 
     getEstaPreso() {
@@ -142,12 +155,68 @@ export class Jogador {
         this.saldo += valor
     }
 
-    pagar(valor: number) {
-        this.saldo -= valor
-    }
-
     getSaldo() {
         return this.saldo
+    }
+
+    getPosicao() {
+        return this.posicao
+    }
+
+    comprarCarta(banco: Banco, nomeEspaco: NomeEspaco) {
+        const carta = banco.retirarCarta(nomeEspaco)
+
+        if (!carta) {
+            throw new Error('Carta não está à venda no banco')
+        }
+
+        const pagamentoRealizado = this.pagar(carta.getPreco())
+
+        if (!pagamentoRealizado) {
+            banco.devolverCarta(carta)
+            throw new Error('Saldo insuficiente para comprar essa carta')
+        }
+
+        this.cartas.push(carta)
+    }
+
+    pagar(valor: number) {
+        if (this.saldo < valor) {
+            return false
+        }
+
+        this.saldo -= valor
+
+        return true
+    }
+
+    getCarta(nomeEspaco: NomeEspaco) {
+        const carta = this.cartas.find(carta => carta.getNome() === nomeEspaco)
+        return carta || null
+    }
+
+    getQuantidadeDeTitulos(cor: COR_ENUM) {
+        const quantidade = this.cartas.filter(
+            carta => carta instanceof TituloDePosse && carta.getCor() === cor,
+        ).length
+
+        return quantidade
+    }
+
+    getQuantidadeDeEstacoesMetro() {
+        const quantidade = this.cartas.filter(
+            carta => carta instanceof EstacaoDeMetro,
+        ).length
+
+        return quantidade
+    }
+
+    getQuantidadeDeCompanhias() {
+        const quantidade = this.cartas.filter(
+            carta => carta instanceof Companhia,
+        ).length
+
+        return quantidade
     }
 
     getPersonagem() {

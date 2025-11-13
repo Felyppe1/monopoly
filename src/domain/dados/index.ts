@@ -279,6 +279,7 @@ export const terrenoDados: {
     nome: NomeEspaco
     tipo: TIPO_ESPACO_ENUM
     posicao: number
+    aluguel?: number
 }[] = [
     {
         nome: 'Ponto de Partida',
@@ -304,6 +305,7 @@ export const terrenoDados: {
         tipo: TIPO_ESPACO_ENUM.IMPOSTO,
         nome: 'Imposto de Renda',
         posicao: 4,
+        aluguel: 200,
     },
     {
         tipo: TIPO_ESPACO_ENUM.ESTACAO_DE_METRO,
@@ -474,6 +476,7 @@ export const terrenoDados: {
         nome: 'Taxa de Riqueza',
         tipo: TIPO_ESPACO_ENUM.IMPOSTO,
         posicao: 38,
+        aluguel: 100,
     },
     {
         nome: 'Rua Oscar Freire',
