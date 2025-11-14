@@ -3,9 +3,18 @@ import {
     EstacaoDeMetro as CartaEstacaoDeMetro,
     Companhia as CartaCompanhia,
     TituloDePosse,
+    COR_ENUM,
 } from './Carta'
 import { terrenoDados } from './dados'
 import { NomeEspaco } from './dados/nome-espacos'
+import {
+    CompanhiaEspaco,
+    Espaco,
+    EspacoCompravel,
+    EstacaoDeMetroEspaco,
+    ImpostoEspaco,
+    PropriedadeEspaco,
+} from './espaco'
 import {
     Companhia,
     EspacoDoTabuleiro,
@@ -36,14 +45,18 @@ export interface JogoInput {
     estado: ESTADO_JOGO
     personagemVencedor: PERSONAGEM | null
     indiceJogadorAtual: number
-    espacosTabuleiro: EspacoDoTabuleiro[]
+    espacosTabuleiro: Espaco[]
     banco: Banco
     quantidadeDuplas: number
     jogouOsDados: boolean
+    dados: { dado1: number; dado2: number } | null
 }
 
 export interface JogoOutput
-    extends Omit<JogoInput, 'jogadores' | 'espacosTabuleiro' | 'banco'> {
+    extends Omit<
+        JogoInput,
+        'jogadores' | 'espacosTabuleiro' | 'banco' | 'dados'
+    > {
     jogadores: JogadorOutput[]
     espacosTabuleiro: EspacoDoTabuleiroOutputUnion[]
     banco: BancoOutput
@@ -54,10 +67,11 @@ export class Jogo {
     private estado: ESTADO_JOGO
     private personagemVencedor: PERSONAGEM | null
     private indiceJogadorAtual: number
-    private espacosTabuleiro: EspacoDoTabuleiro[]
+    private espacosTabuleiro: Espaco[]
     private quantidadeDuplas: number
     private banco: Banco
     private jogouOsDados: boolean
+    private dados: { dado1: number; dado2: number } | null
 
     static criar(jogadores: CriarJogadorInput[]) {
         const banco = Banco.criar()
@@ -73,6 +87,7 @@ export class Jogo {
             banco: banco,
             quantidadeDuplas: 0,
             jogouOsDados: false,
+            dados: null,
         })
 
         return jogo
@@ -143,6 +158,10 @@ export class Jogo {
             throw new Error('O status de jogou os dados é obrigatório')
         }
 
+        // data.espacosTabuleiro.forEach(espaco => {
+        //     espaco.
+        // })
+
         this.jogadores = data.jogadores
         this.estado = data.estado
         this.personagemVencedor = data.personagemVencedor ?? null
@@ -151,6 +170,7 @@ export class Jogo {
         this.banco = data.banco
         this.quantidadeDuplas = data.quantidadeDuplas
         this.jogouOsDados = data.jogouOsDados
+        this.dados = data.dados
     }
 
     private static criarEspacos(banco: Banco) {
@@ -160,7 +180,7 @@ export class Jogo {
                     dado.nome,
                 )! as TituloDePosse
 
-                return new Propriedade({
+                return PropriedadeEspaco.criar({
                     nome: dado.nome,
                     posicao: dado.posicao, // Poderia usar o index
                     tituloDePosse: tituloDePosse,
@@ -172,28 +192,28 @@ export class Jogo {
                     dado.nome,
                 )! as CartaEstacaoDeMetro
 
-                return new EstacaoDeMetro({
+                return EstacaoDeMetroEspaco.criar({
                     nome: dado.nome,
                     posicao: dado.posicao,
-                    cartaEstacaoDeMetro: estacaoDeMetro,
+                    carta: estacaoDeMetro,
                 })
             }
 
             if (dado.tipo === TIPO_ESPACO_ENUM.COMPANHIA) {
                 const companhia = banco.getCarta(dado.nome)! as CartaCompanhia
 
-                return new Companhia({
+                return CompanhiaEspaco.criar({
                     nome: dado.nome,
                     posicao: dado.posicao,
-                    cartaCompanhia: companhia,
+                    carta: companhia,
                 })
             }
 
             if (dado.tipo === TIPO_ESPACO_ENUM.IMPOSTO) {
-                return new Imposto({
+                return new ImpostoEspaco({
                     nome: dado.nome,
                     posicao: dado.posicao,
-                    aluguel: dado.aluguel!,
+                    tipo: TIPO_ESPACO_ENUM.IMPOSTO,
                 })
             }
 
@@ -207,8 +227,13 @@ export class Jogo {
         return terrenos
     }
 
-    private rolarDado(): number {
-        return Math.floor(Math.random() * 6) + 1
+    private rolarDados() {
+        const dados = {
+            dado1: Math.floor(Math.random() * 6) + 1,
+            dado2: Math.floor(Math.random() * 6) + 1,
+        }
+
+        this.dados = dados
     }
 
     jogarDados(): {
@@ -219,21 +244,35 @@ export class Jogo {
             throw new Error('O jogo já está finalizado')
         }
 
-        const dado1 = this.rolarDado()
-        const dado2 = this.rolarDado()
+        this.rolarDados()
 
-        const eDuplo = dado1 === dado2
+        const eDuplo = this.dados!.dado1 === this.dados!.dado2
 
         const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
 
         if (jogadorAtual.getEstaPreso()) {
-            jogadorAtual.tentarSairDaPrisao(dado1, dado2)
+            const saiuDaPrisao = jogadorAtual.tentarSairDaPrisao(
+                this.dados!.dado1,
+                this.dados!.dado2,
+            )
+
+            const espacoAtual = this.getEspacoTabuleiroPorPosicao(
+                jogadorAtual.getPosicao(),
+            )
+
+            if (saiuDaPrisao) {
+                espacoAtual.acaoAoCair(jogadorAtual, this)
+            }
         } else {
-            jogadorAtual.mover(dado1 + dado2)
+            jogadorAtual.mover(this.dados!.dado1 + this.dados!.dado2)
 
-            const espacoAtual = this.espacosTabuleiro[jogadorAtual.getPosicao()]
+            const espacoAtual = this.getEspacoTabuleiroPorPosicao(
+                jogadorAtual.getPosicao(),
+            )
 
-            if (eDuplo) {
+            espacoAtual.acaoAoCair(jogadorAtual, this)
+
+            if (eDuplo && !jogadorAtual.getEstaPreso()) {
                 this.quantidadeDuplas += 1
 
                 if (this.quantidadeDuplas === 3) {
@@ -245,9 +284,7 @@ export class Jogo {
                 this.quantidadeDuplas = 0
             }
 
-            if (
-                espacoAtual.getTipo() === TIPO_ESPACO_ENUM.VA_PARA_PRISAO
-            ) {
+            if (espacoAtual.getTipo() === TIPO_ESPACO_ENUM.VA_PARA_PRISAO) {
                 jogadorAtual.irParaPrisao()
 
                 this.quantidadeDuplas = 0
@@ -257,8 +294,8 @@ export class Jogo {
         this.jogouOsDados = true
 
         return {
-            dado1,
-            dado2,
+            dado1: this.dados!.dado1,
+            dado2: this.dados!.dado2,
         }
     }
 
@@ -277,73 +314,37 @@ export class Jogo {
         this.jogouOsDados = false
     }
 
+    getJogadorAtual() {
+        return this.jogadores[this.indiceJogadorAtual]
+    }
+
+    getEspacoTabuleiroPorPosicao(posicao: number) {
+        return this.espacosTabuleiro[posicao]
+    }
+
     // TODO: se tiver mais lugares que precisam da informação dos dados, salvar na classe Jogo
-    cobrarAluguel(dados?: { dado1: number; dado2: number }) {
+    cobrarAluguel() {
         if (this.estado !== ESTADO_JOGO.EM_ANDAMENTO) {
             throw new Error('O jogo já está finalizado')
         }
 
-        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
+        const jogadorAtual = this.getJogadorAtual()
 
-        const posicao = jogadorAtual.getPosicao()
+        const espaco = this.getEspacoTabuleiroPorPosicao(
+            jogadorAtual.getPosicao(),
+        )
 
-        const espaco = this.espacosTabuleiro[posicao]
+        espaco.cobrarAluguel(
+            jogadorAtual,
+            this.getProprietario(espaco.getNome())!,
+            this,
+        )
+    }
 
-        if (espaco instanceof Imposto) {
-            const pagamentoRealizado = jogadorAtual.pagar(espaco.getAluguel())
-            return
-        }
-
-        const proprietario = this.getProprietario(espaco.getNome())
-
-        if (proprietario && proprietario !== jogadorAtual) {
-            let valorAluguel = 0
-
-            if (espaco instanceof Propriedade) {
-                const quantidadeTitulosProprietario =
-                    proprietario.getQuantidadeDeTitulos(espaco.getCor())
-
-                const totalTitulos = this.espacosTabuleiro.filter(
-                    espacoTabuleiro =>
-                        espacoTabuleiro.getTipo() ===
-                            TIPO_ESPACO_ENUM.PROPRIEDADE &&
-                        (espacoTabuleiro as Propriedade).getCor() ===
-                            espaco.getCor(),
-                ).length
-
-                valorAluguel =
-                    quantidadeTitulosProprietario === totalTitulos
-                        ? espaco.calcularAluguel(
-                              espaco.getQuantidadeConstrucoes() === 0,
-                          )
-                        : espaco.calcularAluguel(false)
-            } else if (espaco instanceof EstacaoDeMetro) {
-                const quantidadeEstacoes =
-                    proprietario.getQuantidadeDeEstacoesMetro()
-
-                valorAluguel = espaco.calcularAluguel(quantidadeEstacoes)
-            } else if (espaco instanceof Companhia) {
-                const quantidadeCompanhias =
-                    proprietario.getQuantidadeDeCompanhias()
-
-                if (!dados) {
-                    throw new Error(
-                        'Os valores dos dados são necessários para calcular o aluguel da companhia',
-                    )
-                }
-
-                valorAluguel = espaco.calcularAluguel(
-                    quantidadeCompanhias,
-                    dados.dado1 + dados.dado2,
-                )
-            } else {
-                throw new Error('Não é possível cobrar aluguel deste espaço')
-            }
-
-            // TODO: o que acontece se ele não tiver dinheiro? falência?
-            const pagamentoRealizado = jogadorAtual.pagar(valorAluguel)
-            proprietario.receber(valorAluguel)
-        }
+    getQuantidadePropriedades(cor: COR_ENUM) {
+        return this.espacosTabuleiro.filter(espaco => {
+            return espaco.pertenceACor?.(cor) ?? false
+        }).length
     }
 
     comprarEspaco() {
@@ -356,7 +357,7 @@ export class Jogo {
         jogadorAtual.comprarCarta(this.banco, espaco.getNome())
     }
 
-    private getProprietario(nomeEspaco: NomeEspaco) {
+    getProprietario(nomeEspaco: NomeEspaco) {
         const jogador = this.jogadores.find(jogador =>
             jogador.getCarta(nomeEspaco),
         )
@@ -366,6 +367,10 @@ export class Jogo {
         }
 
         return jogador
+    }
+
+    getDados() {
+        return this.dados
     }
 
     toObject(): JogoOutput {

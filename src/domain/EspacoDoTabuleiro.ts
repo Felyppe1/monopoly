@@ -9,6 +9,8 @@ import {
     CompanhiaOutput as CartaCompanhiaOutput,
 } from './Carta'
 import { NomeEspaco } from './dados/nome-espacos'
+import { Jogador } from './jogador'
+import { Jogo } from './jogo'
 
 export enum TIPO_ESPACO_ENUM {
     PROPRIEDADE = 'propriedade',

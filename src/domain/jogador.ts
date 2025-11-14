@@ -106,18 +106,21 @@ export class Jogador {
 
     tentarSairDaPrisao(dado1: number, dado2: number) {
         if (!this.estaPreso) return
+        // TODO: pagando 2 vezes
         this.pagar(50)
+
         this.tentativasDuplo += 1
         this.turnosNaPrisao += 1
 
-        if (this.tentativasDuplo === 3) {
+        if (this.tentativasDuplo === 3 || dado1 === dado2) {
             this.sairDaPrisao()
-            this.pagar(50)
+
             this.mover(dado1 + dado2)
-        } else if (dado1 === dado2) {
-            this.sairDaPrisao()
-            this.mover(dado1 + dado2)
+
+            return true
         }
+
+        return false
     }
 
     sairDaPrisao() {
