@@ -17,10 +17,10 @@ export const TituloDePosseView = ({
 
     const sizeClasses =
         size === 'sm'
-            ? 'w-[120px] h-[180px] p-2 text-xs'
+            ? 'w-[120px] min-h-[180px] p-2 text-xs'
             : size === 'md'
-              ? 'w-[150px] h-[220px] p-3 text-sm'
-              : 'w-[180px] h-[260px] p-4 text-base'
+              ? 'w-[150px] min-h-[220px] p-3 text-sm'
+              : 'w-[180px] min-h-[260px] p-4 text-base'
 
     return (
         <div className="p-1 bg-gray-100 rounded-md">
@@ -36,11 +36,11 @@ export const TituloDePosseView = ({
                     </p>
                     <div
                         className={cn(
-                            'flex justify-center items-center text-center border border-gray-300 rounded-sm w-full h-[30px] p-2',
+                            'flex justify-center items-center text-center border border-gray-300 rounded-sm w-full min-h-[30px] p-2',
                             corDaCarta,
                         )}
                     >
-                        <h2 className="font-bold uppercase text-white-600">
+                        <h2 className="font-bold uppercase text-black">
                             {tituloDePosse.getNome()}
                         </h2>
                     </div>
@@ -70,7 +70,7 @@ export const TituloDePosseView = ({
                     <p>Hotéis custam ${tituloDePosse['precoHotel']}</p>
                 </div>
 
-                <div className="absolute bottom-0 w-full text-[9px] text-gray-400 text-center border-t border-gray-200">
+                <div className="mt-auto w-full text-[9px] text-gray-400 text-center border-t border-gray-200">
                     © MONOPOLY
                 </div>
             </Card>
