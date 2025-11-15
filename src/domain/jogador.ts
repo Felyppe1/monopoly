@@ -223,6 +223,10 @@ export class Jogador {
         return this.personagem
     }
 
+    getNome() {
+        return this.nome
+    }
+
     toObject(): JogadorOutput {
         return {
             nome: this.nome,
