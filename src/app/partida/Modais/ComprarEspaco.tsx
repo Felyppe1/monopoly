@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { TituloDePosseView } from '@/components/titulo-de-posse'
 // import { TIPO_ESPACO_ENUM } from '@/domain/EspacoDoTabuleiro'
 import { CartaOutputUnion } from '@/domain/Carta'
+import { CartaCompanhiaView } from '@/components/carta-companhia'
 
 interface ComprarEspacoProps {
     carta: CartaOutputUnion
@@ -51,6 +52,9 @@ export function ComprarEspaco({ carta, onClose }: ComprarEspacoProps) {
                     <div className="flex justify-center bg-gradient-to-b from-teal-800 to-teal-950 p-4 rounded-lg">
                         {carta?.tipo === 'TituloDePosse' && (
                             <TituloDePosseView tituloDePosse={carta} />
+                        )}
+                        {carta?.tipo === 'Companhia' && (
+                            <CartaCompanhiaView companhia={carta} />
                         )}
                     </div>
                     <div className="flex justify-evenly">

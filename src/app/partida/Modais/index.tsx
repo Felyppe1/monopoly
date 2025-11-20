@@ -10,10 +10,8 @@ export function Modais() {
     )
 
     const jogo = useJogoStore(state => state.jogo!)
-    // const setJogo = useJogoStore(state => state.setJogo)
 
     useEffect(() => {
-        console.log('ENTROU AQUI')
         const estadoJogo = jogo.toObject()
         const jogadorAtual = estadoJogo.jogadores[estadoJogo.indiceJogadorAtual]
 
