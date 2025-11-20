@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
 
 import { Terreno } from './Terreno'
@@ -10,13 +9,8 @@ import { Modais } from './Modais'
 
 export function Tabuleiro() {
     const jogo = useJogoStore(state => state.jogo!)
-    const setJogo = useJogoStore(state => state.setJogo)
 
     const estadoJogo = jogo!.toObject()
-
-    const [dado1, setDado1] = useState(5)
-    const [dado2, setDado2] = useState(3)
-    const [rolando, setRolando] = useState(false)
 
     return (
         <div
