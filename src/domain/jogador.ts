@@ -1,6 +1,7 @@
 import { Banco } from './banco'
 import {
     Carta,
+    CartaOutputUnion,
     Companhia,
     COR_ENUM,
     EstacaoDeMetro,
@@ -30,7 +31,9 @@ export interface JogadorInput {
     tentativasDuplo: number
 }
 
-export interface JogadorOutput extends JogadorInput {}
+export interface JogadorOutput extends Omit<JogadorInput, 'cartas'> {
+    cartas: CartaOutputUnion[]
+}
 
 export interface CriarJogadorInput {
     nome: string
@@ -228,7 +231,7 @@ export class Jogador {
             nome: this.nome,
             personagem: this.personagem,
             posicao: this.posicao,
-            cartas: this.cartas,
+            cartas: this.cartas.map(carta => carta.toObject()),
             saldo: this.saldo,
             estaPreso: this.estaPreso,
             turnosNaPrisao: this.turnosNaPrisao,
