@@ -1,79 +1,172 @@
 // app/components/TituloDePosseView.tsx
 import { cn } from '../lib/utils'
 import { Card } from './ui/card'
-import { TituloDePosse } from '@/domain/Carta'
+import { TituloDePosse, TituloDePosseOutput } from '@/domain/Carta'
 
 interface TitulosDePosseProps {
-    tituloDePosse: TituloDePosse
-    size?: 'sm' | 'md' | 'xl'
+    tituloDePosse: TituloDePosseOutput
+    size?: 'sm' | 'lg'
 }
 
 export const TituloDePosseView = ({
     tituloDePosse,
-    size = 'md',
+    size = 'sm',
 }: TitulosDePosseProps) => {
-    const corDaCarta = tituloDePosse.getCor().toLowerCase()
-    console.log(corDaCarta)
-
-    const sizeClasses =
-        size === 'sm'
-            ? 'w-[120px] h-[180px] p-2 text-xs'
-            : size === 'md'
-              ? 'w-[150px] h-[220px] p-3 text-sm'
-              : 'w-[180px] h-[260px] p-4 text-base'
+    const corDaCarta = tituloDePosse.cor.toLocaleLowerCase()
 
     return (
-        <div className="p-1 bg-gray-100 rounded-md">
-            <Card
+        <div
+            className={cn(
+                'border border-gray-300 bg-white',
+                size === 'lg' && 'w-[23rem] p-4',
+                size === 'sm' && 'w-[16rem] p-2',
+            )}
+        >
+            <div
                 className={cn(
-                    'relative flex flex-col items-center border border-gray-400 rounded-md overflow-hidden shadow-sm bg-white',
-                    sizeClasses,
+                    'border-2 border-black flex flex-col',
+                    size === 'lg' && 'p-2.5',
+                    size === 'sm' && 'p-1.5 pb-0',
                 )}
             >
-                <div className="flex flex-col items-center text-center">
-                    <p className="text-[10px] italic text-gray-500">
-                        Título de Posse
-                    </p>
-                    <div
+                <div
+                    className={cn(
+                        'flex flex-col items-center justify-center border-black border-2',
+                        size === 'lg' && 'gap-2 px-4 py-3',
+                        size === 'sm' && 'gap-1 px-2 py-1.5',
+                        corDaCarta,
+                    )}
+                >
+                    <p
                         className={cn(
-                            'flex justify-center items-center text-center border border-gray-300 rounded-sm w-full h-[30px] p-2',
-                            corDaCarta,
+                            'font-bold tracking-wide',
+                            size === 'lg' && 'text-sm',
+                            size === 'sm' && 'text-[10px]',
                         )}
                     >
-                        <h2 className="font-bold uppercase text-white-600">
-                            {tituloDePosse.getNome()}
-                        </h2>
+                        ESCRITURA DE PROPRIEDADE
+                    </p>
+                    <h1
+                        className={cn(
+                            'font-extrabold uppercase tracking-tight text-center',
+                            size === 'lg' && 'text-2xl/5',
+                            size === 'sm' && 'text-sm/4',
+                        )}
+                    >
+                        {tituloDePosse.nome}
+                    </h1>
+                </div>
+
+                <div
+                    className={cn(
+                        'flex-1 flex flex-col',
+                        size === 'lg' && 'px-6 py-4',
+                        size === 'sm' && 'px-3 py-2',
+                    )}
+                >
+                    <div
+                        className={cn(
+                            size === 'lg' && 'space-y-2',
+                            size === 'sm' && 'space-y-1',
+                        )}
+                    >
+                        <div
+                            className={cn(
+                                'text-center',
+                                size === 'lg' && 'mb-3',
+                                size === 'sm' && 'mb-1.5',
+                            )}
+                        >
+                            <p
+                                className={cn(
+                                    'font-bold',
+                                    size === 'lg' && 'text-xl',
+                                    size === 'sm' && 'text-xs',
+                                )}
+                            >
+                                ALUGUEL ${tituloDePosse.valorAluguel[0]}
+                            </p>
+                        </div>
+
+                        <ul
+                            className={cn(
+                                size === 'lg' && 'space-y-1',
+                                size === 'sm' && 'space-y-0.5',
+                            )}
+                        >
+                            {tituloDePosse.valorAluguel.map((valor, index) => (
+                                <li
+                                    key={index}
+                                    className="flex justify-between items-center"
+                                >
+                                    <span
+                                        className={cn(
+                                            'font-medium',
+                                            size === 'lg' && 'text-sm',
+                                            size === 'sm' && 'text-xs',
+                                        )}
+                                    >
+                                        Com {index + 1} Casa
+                                    </span>
+                                    <span
+                                        className={cn(
+                                            'font-bold text-right',
+                                            size === 'lg' && 'text-sm',
+                                            size === 'sm' && 'text-xs',
+                                        )}
+                                    >
+                                        ${tituloDePosse.valorAluguel[index]}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div
+                        className={cn(
+                            'border-t border-gray-300',
+                            size === 'lg' && 'my-2',
+                            size === 'sm' && 'my-1',
+                        )}
+                    ></div>
+
+                    <div
+                        className={cn(
+                            'text-center font-medium',
+                            size === 'lg' && 'text-sm',
+                            size === 'sm' && 'text-[10px]',
+                        )}
+                    >
+                        <p>
+                            Valor da Hipoteca{' '}
+                            <strong>${tituloDePosse.valorHipoteca}</strong>
+                        </p>
+                        <p>
+                            Casas custam{' '}
+                            <strong>${tituloDePosse.precoCasa}</strong> cada
+                        </p>
+                        <p>
+                            Hotéis, <strong>${tituloDePosse.precoHotel}</strong>{' '}
+                            cada
+                        </p>
+                        <p className="italic">mais 4 casas</p>
+                    </div>
+
+                    <div
+                        className={cn(
+                            'text-center italic text-gray-700',
+                            size === 'lg' && 'text-xs mt-2',
+                            size === 'sm' && 'text-[.625rem]/3 mt-1',
+                        )}
+                    >
+                        <p>
+                            Se um jogador possui todos os terrenos de qualquer
+                            grupo de cores, o aluguel é dobrado em terrenos sem
+                            construção.
+                        </p>
                     </div>
                 </div>
-
-                <div className="w-full mt-2 border-t border-gray-300 pt-1 text-gray-700">
-                    <p className="text-center text-[11px] mb-1 font-semibold">
-                        Aluguel: ${tituloDePosse.getValorAluguel(0)}
-                    </p>
-
-                    <ul className="text-[10px] px-2">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <li key={i} className="flex justify-between">
-                                <span>
-                                    {i + 1} casa{i > 0 ? 's' : ''}:
-                                </span>
-                                <span>
-                                    ${tituloDePosse.getValorAluguel(i + 1)}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                <div className="border-t border-gray-300 w-full text-[10px] text-center text-gray-600 pt-1">
-                    <p>Casas custam ${tituloDePosse['precoCasa']} cada</p>
-                    <p>Hotéis custam ${tituloDePosse['precoHotel']}</p>
-                </div>
-
-                <div className="absolute bottom-0 w-full text-[9px] text-gray-400 text-center border-t border-gray-200">
-                    © MONOPOLY
-                </div>
-            </Card>
+            </div>
         </div>
     )
 }
