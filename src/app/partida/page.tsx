@@ -65,10 +65,7 @@ export default function Partida() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div
-                                            className="bg-[#8FCBBB] w-[60%] 
-px-4 py-1 rounded-r-md text-neutral-800"
-                                        >
+                                        <div className="bg-[#8FCBBB] w-[60%] px-4 py-1 rounded-r-md text-neutral-800">
                                             <div
                                                 className={`flex items-center gap-2 ${jogador.estaPreso && 'text-red-700'}`}
                                             >
