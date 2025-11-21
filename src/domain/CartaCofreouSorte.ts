@@ -1,3 +1,6 @@
+import type { Jogador } from './jogador'
+import type { Jogo } from './jogo'
+
 export enum TIPO_CARTA {
     SORTE = 'sorte',
     AZAR = 'azar',
@@ -184,9 +187,8 @@ export class CartaEvento {
     }
 
     executarAcao(
-        numeroCasas: number = 0,
-        numeroHoteis: number = 0,
-        numeroJogadores: number = 1,
+        jogador: Jogador,
+        jogo?: Jogo,
     ): {
         valor: number
         destino?: string
@@ -196,40 +198,45 @@ export class CartaEvento {
         tipoMovimento?: 'avancar' | 'voltar' | 'prisao'
         multiplicadorAluguel?: number
         avancarPara?: 'estacao' | 'companhia'
+        acao?: ACAO_CARTA
     } {
+        const baseRetorno = { acao: this.acao, valor: 0 }
         switch (this.acao) {
             case ACAO_CARTA.RECEBER:
-                return {
-                    valor: this.valor!,
-                }
+                return { ...baseRetorno, valor: this.valor! }
 
             case ACAO_CARTA.PAGAR:
-                return {
-                    valor: -this.valor!,
-                }
+                return { ...baseRetorno, valor: -this.valor! }
 
             case ACAO_CARTA.PAGAR_TODOS:
-                const totalPagar = this.valor! * (numeroJogadores - 1)
-                return {
-                    valor: -totalPagar,
-                }
+                // Se o jogo for passado, calcula com base no número real de jogadores.
+                // Senão, assume 1 oponente (padrão de segurança).
+                // Assumindo que Jogo tem um método getJogadores() ou similar.
+                // Como 'jogo' é tipagem fraca aqui para evitar ciclo, usamos lógica defensiva.
+                const numJogadores = jogo
+                    ? (jogo as any).jogadores?.length || 2
+                    : 2
+                const totalPagar = this.valor! * (numJogadores - 1)
+                return { ...baseRetorno, valor: -totalPagar }
 
             case ACAO_CARTA.IR_PARA_PRISAO:
                 return {
-                    valor: 0,
+                    ...baseRetorno,
                     irParaPrisao: true,
                     tipoMovimento: 'prisao',
                 }
 
             case ACAO_CARTA.AVANCAR_PROPRIEDADE:
                 return {
-                    valor: 200,
+                    ...baseRetorno,
+                    valor: 200, // Valor base se passar pelo início (sobrescrito se não passar)
                     destino: this.destino!,
                     tipoMovimento: 'avancar',
                 }
 
             case ACAO_CARTA.AVANCAR_ESTACAO:
                 return {
+                    ...baseRetorno,
                     valor: 200,
                     destino: this.destino,
                     tipoMovimento: 'avancar',
@@ -239,6 +246,7 @@ export class CartaEvento {
 
             case ACAO_CARTA.AVANCAR_ESTACAO_ESPECIFICA:
                 return {
+                    ...baseRetorno,
                     valor: 200,
                     destino: this.destino!,
                     tipoMovimento: 'avancar',
@@ -246,23 +254,26 @@ export class CartaEvento {
                 }
 
             case ACAO_CARTA.MULTAR_POR_CASA:
+                // LÓGICA CORRIGIDA: Usa os métodos do jogador
+                const qtdCasas = jogador.getQuantidadeTotalCasas()
+                const qtdHoteis = jogador.getQuantidadeTotalHoteis()
+
                 const multaCasas =
-                    numeroCasas * this.valorPorCasa! +
-                    numeroHoteis * this.valorPorHotel!
-                return {
-                    valor: -multaCasas,
-                }
+                    qtdCasas * this.valorPorCasa! +
+                    qtdHoteis * this.valorPorHotel!
+
+                return { ...baseRetorno, valor: -multaCasas }
 
             case ACAO_CARTA.VOLTAR_CASAS:
                 return {
-                    valor: 0,
+                    ...baseRetorno,
                     voltarCasas: this.quantidadeCasas!,
                     tipoMovimento: 'voltar',
                 }
 
             case ACAO_CARTA.AVANCAR_COMPANHIA:
                 return {
-                    valor: 0,
+                    ...baseRetorno,
                     destino: this.destino,
                     tipoMovimento: 'avancar',
                     avancarPara: 'companhia',
@@ -270,15 +281,13 @@ export class CartaEvento {
                 }
 
             case ACAO_CARTA.SAIR_DA_PRISAO:
-                return {
-                    valor: 0,
-                    cartaPrisao: true,
-                }
+                return { ...baseRetorno, cartaPrisao: true }
 
             case ACAO_CARTA.AVANCAR_INICIO:
                 return {
+                    ...baseRetorno,
                     valor: this.valor || 200,
-                    destino: 'inicio',
+                    destino: 'Ponto de Partida',
                     tipoMovimento: 'avancar',
                 }
 

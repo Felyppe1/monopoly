@@ -429,23 +429,22 @@ export class Jogo {
     private inicializarBaralhoSorte(): void {
         const cartasSorte = [
             {
-                descricao:
-                    'Vá para a prisão. Vá diretamente para a prisão. Não passe pelo início, não RECEBA R$200.',
+                descricao: 'Vá para a prisão.',
                 tipo: TIPO_CARTA.AZAR,
                 acao: ACAO_CARTA.IR_PARA_PRISAO,
             },
             {
                 descricao:
-                    'Avance até a avenida Atlântica. Se passar pelo início, RECEBA R$200.',
+                    'Avance até a Av. Atlântica. Se passar pelo início, RECEBA R$200.',
                 tipo: TIPO_CARTA.SORTE,
                 acao: ACAO_CARTA.AVANCAR_PROPRIEDADE,
-                destino: 'Avenida Atlântica',
+                destino: 'Av. Atlântica',
             },
             {
                 descricao:
-                    'Você foi eleito presidente do conselho. PAGUE R$50 para cada jogador.',
+                    'Você foi eleito presidente do conselho. PAGUE R$50.',
                 tipo: TIPO_CARTA.AZAR,
-                acao: ACAO_CARTA.PAGAR_TODOS,
+                acao: ACAO_CARTA.PAGAR,
                 valor: 50,
             },
             {
@@ -457,10 +456,10 @@ export class Jogo {
             },
             {
                 descricao:
-                    'Faça uma viagem até a estação Noroeste. Se passar pelo início, RECEBA R$200.',
+                    'Faça uma viagem até a estação do Maracanã. Se passar pelo início, RECEBA R$200.',
                 tipo: TIPO_CARTA.SORTE,
                 acao: ACAO_CARTA.AVANCAR_ESTACAO_ESPECIFICA,
-                destino: 'Estação Noroeste',
+                destino: 'Estação do Maracanã',
             },
             {
                 descricao: 'Seu empréstimo imobiliário venceu. RECEBA R$150.',
@@ -490,21 +489,20 @@ export class Jogo {
             },
             {
                 descricao:
-                    'Avance até a avenida Pacaembu. Se passar pelo início, RECEBA R$200.',
+                    'Avance até a Av. Cidade Jardim. Se passar pelo início. RECEBA R$200.',
                 tipo: TIPO_CARTA.SORTE,
                 acao: ACAO_CARTA.AVANCAR_PROPRIEDADE,
-                destino: 'Avenida Pacaembu',
+                destino: 'Av. Cidade Jardim',
             },
             {
                 descricao:
-                    'Avance até a companhia mais próxima. Se não tiver dono, você pode comprá-la do banco. Se tiver dono, jogue os dados e pague ao proprietário 10 vezes o valor dos dados.',
+                    'Avance até a Av. Presidente Vargas. Se passar pelo início. RECEBA R$200.',
                 tipo: TIPO_CARTA.SORTE,
-                acao: ACAO_CARTA.AVANCAR_COMPANHIA,
-                multiplicadorAluguel: 10,
+                acao: ACAO_CARTA.AVANCAR_PROPRIEDADE,
+                destino: 'Av. Presidente Vargas',
             },
             {
-                descricao:
-                    'Saia da prisão livremente. Esta carta pode ser guardada até ser necessária, trocada ou vendida.',
+                descricao: 'Saia da prisão livremente.',
                 tipo: TIPO_CARTA.SORTE,
                 acao: ACAO_CARTA.SAIR_DA_PRISAO,
             },
@@ -515,17 +513,16 @@ export class Jogo {
                 valor: 15,
             },
             {
-                descricao: 'Avance até a avenida Paulista.',
+                descricao: 'Avance até a Av. Paulista.',
                 tipo: TIPO_CARTA.SORTE,
                 acao: ACAO_CARTA.AVANCAR_PROPRIEDADE,
-                destino: 'Avenida Paulista',
+                destino: 'Av. Paulista',
             },
             {
-                descricao:
-                    'Avance até a companhia mais próxima. Se não tiver dono, você pode comprá-la do banco. Se tiver dono, jogue os dados e pague ao proprietário 10 vezes o valor dos dados.',
+                descricao: 'Avance até a Av. Ipiranga.',
                 tipo: TIPO_CARTA.SORTE,
-                acao: ACAO_CARTA.AVANCAR_COMPANHIA,
-                multiplicadorAluguel: 10,
+                acao: ACAO_CARTA.AVANCAR_PROPRIEDADE,
+                destino: 'Av. Ipiranga',
             },
             {
                 descricao: 'Avance até o início, RECEBA R$200.',
@@ -570,7 +567,11 @@ export class Jogo {
             case TIPO_ESPACO_ENUM.COFRE:
                 const cartaCofre = this.baralho.comprarCartaCofre()
                 if (cartaCofre) {
-                    cartaCofre.executarAcao(jogador, this)
+                    const resultado = cartaCofre.executarAcao(jogador, this)
+                    this.aplicarEfeitoCarta(jogador, resultado, cartaCofre)
+                    if (!resultado.cartaPrisao) {
+                        this.baralho.devolverCartaCofre(cartaCofre)
+                    }
                     console.log(
                         `${jogador.getNome()} caiu em cofre. carta: ${cartaCofre.getDescricao()}`,
                     )
@@ -581,7 +582,11 @@ export class Jogo {
             case TIPO_ESPACO_ENUM.SORTE:
                 const cartaSorte = this.baralho.comprarCartaSorte()
                 if (cartaSorte) {
-                    cartaSorte.executarAcao(jogador, this)
+                    const resultado = cartaSorte.executarAcao(jogador, this)
+                    this.aplicarEfeitoCarta(jogador, resultado, cartaSorte)
+                    if (!resultado.cartaPrisao) {
+                        this.baralho.devolverCartaCofre(cartaSorte)
+                    }
                     console.log(
                         `${jogador.getNome()} caiu em sorte. carta: ${cartaSorte.getDescricao()}`,
                     )
@@ -594,6 +599,135 @@ export class Jogo {
         }
 
         return null
+    }
+
+    private encontrarPosicaoPorNome(nome: string): number {
+        return this.espacosTabuleiro.findIndex(e => e.getNome() === nome)
+    }
+
+    private encontrarProximaEstacao(posicaoAtual: number): number {
+        for (let i = 1; i < 40; i++) {
+            const proximaPosicao = (posicaoAtual + i) % 40
+            const espaco = this.espacosTabuleiro[proximaPosicao]
+            if (espaco.getTipo() === TIPO_ESPACO_ENUM.ESTACAO_DE_METRO) {
+                return proximaPosicao
+            }
+        }
+        return -1
+    }
+
+    private aplicarEfeitoCarta(
+        jogador: Jogador,
+        resultado: any,
+        cartaOriginal: CartaEvento,
+    ): void {
+        if (resultado.valor !== undefined && resultado.valor !== 0) {
+            if (resultado.valor > 0) {
+                jogador.receber(resultado.valor)
+            } else {
+                const valorPagar = Math.abs(resultado.valor)
+
+                if (resultado.acao === ACAO_CARTA.PAGAR_TODOS) {
+                    this.jogadores.forEach(outroJogador => {
+                        if (outroJogador !== jogador) {
+                            const pagou = jogador.pagar(valorPagar)
+                            if (pagou) outroJogador.receber(valorPagar)
+                        }
+                    })
+                } else {
+                    jogador.pagar(valorPagar)
+                }
+            }
+        }
+
+        if (resultado.irParaPrisao || resultado.tipoMovimento === 'prisao') {
+            jogador.irParaPrisao()
+            this.quantidadeDuplas = 0
+            return
+        }
+
+        if (resultado.cartaPrisao) {
+            jogador.adicionarCartaSaidaPrisao(cartaOriginal)
+            console.log(
+                `${jogador.getNome()} guardou a carta 'Saia da Prisão'!`,
+            )
+        }
+
+        if (resultado.destino) {
+            const novaPosicao = this.encontrarPosicaoPorNome(resultado.destino)
+
+            if (novaPosicao !== -1) {
+                const posicaoAtual = jogador.getPosicao()
+
+                if (
+                    novaPosicao < posicaoAtual &&
+                    resultado.tipoMovimento === 'avancar'
+                ) {
+                    jogador.receber(200)
+                }
+
+                const passos = (novaPosicao - posicaoAtual + 40) % 40
+                jogador.mover(passos)
+            } else {
+                console.warn(
+                    `⚠️ Destino "${resultado.destino}" não encontrado no tabuleiro!`,
+                )
+            }
+        } else if (resultado.voltarCasas) {
+            jogador.mover(-resultado.voltarCasas)
+        } else if (resultado.acao === ACAO_CARTA.AVANCAR_ESTACAO) {
+            const posAtual = jogador.getPosicao()
+            const posDestino = this.encontrarProximaEstacao(posAtual)
+
+            if (posDestino !== -1) {
+                const passos = (posDestino - posAtual + 40) % 40
+                if (posDestino < posAtual) jogador.receber(200)
+                jogador.mover(passos)
+
+                const estacao = this.espacosTabuleiro[posDestino]
+                const dono = this.getProprietario(estacao.getNome())
+
+                if (
+                    dono &&
+                    dono !== jogador &&
+                    estacao instanceof EstacaoDeMetro
+                ) {
+                    const qtd = dono.getQuantidadeDeEstacoesMetro()
+                    const aluguelBase = estacao.calcularAluguel(qtd)
+                    const dobro = aluguelBase * 2
+
+                    console.log(`Pagando aluguel dobrado na estação: ${dobro}`)
+                    if (jogador.pagar(dobro)) {
+                        dono.receber(dobro)
+                    }
+                }
+            }
+        }
+    }
+
+    jogadorUsaCartaSaidaPrisao() {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+
+        if (!jogador.getEstaPreso()) {
+            throw new Error('Jogador não está preso.')
+        }
+
+        if (!jogador.temCartaSaidaPrisao()) {
+            throw new Error('Jogador não possui carta de Saída da Prisão.')
+        }
+
+        const carta = jogador.usarCartaSaidaPrisao()
+
+        if (carta) {
+            jogador.sairDaPrisao()
+            console.log(`${jogador.getNome()} usou a carta e está livre!`)
+
+            if (carta.getTipo() === TIPO_CARTA.SORTE) {
+                this.baralho.devolverCartaSorte(carta)
+            } else {
+                this.baralho.devolverCartaCofre(carta)
+            }
+        }
     }
 
     // TODO: se tiver mais lugares que precisam da informação dos dados, salvar na classe Jogo
