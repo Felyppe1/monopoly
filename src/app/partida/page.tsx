@@ -65,10 +65,7 @@ export default function Partida() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div
-                                            className="bg-[#8FCBBB] w-[60%] 
-px-4 py-1 rounded-r-md text-neutral-800"
-                                        >
+                                        <div className="bg-[#8FCBBB] w-[60%] px-4 py-1 rounded-r-md text-neutral-800">
                                             <div
                                                 className={`flex items-center gap-2 ${jogador.estaPreso && 'text-red-700'}`}
                                             >
@@ -90,45 +87,26 @@ px-4 py-1 rounded-r-md text-neutral-800"
                                                     Propriedades
                                                 </span>
                                                 <div className="flex gap-1 flex-wrap">
-                                                    <div className="w-3 h-4 border-2 border-laranja"></div>
+                                                    {jogador.cartas.map(
+                                                        carta => {
+                                                            console.log(carta)
+                                                            const cor =
+                                                                carta.tipo ===
+                                                                'TituloDePosse'
+                                                                    ? carta.cor
+                                                                    : carta.tipo ===
+                                                                        'EstacaoDeMetro'
+                                                                      ? 'preto'
+                                                                      : 'cinza'
 
-                                                    <div className="w-3 h-4 border-2 border-laranja"></div>
-                                                    <div className="w-3 h-4 border-2 border-laranja"></div>
-
-                                                    <div className="w-3 h-4 border-2 border-vermelho"></div>
-                                                    <div className="w-3 h-4 border-2 border-vermelho"></div>
-
-                                                    <div className="w-3 h-4 border-2 border-vermelho"></div>
-
-                                                    <div className="w-3 h-4 border-2"></div>
-
-                                                    <div className="w-3 h-4 border-2"></div>
-                                                    <div className="w-3 h-4 border-2"></div>
-
-                                                    <div className="w-3 h-4 border-2"></div>
-
-                                                    <div className="w-3 h-4 border-2"></div>
-
-                                                    {/* <div className='w-3 h-4 border-2'></div>
-                                        
-            <div className='w-3 h-4 border-2'></div>
-
-                                                    <div className='w-3 h-4 border-2'></div>
-                              
-                      <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
-
-                    
-                                <div className='w-3 h-4 border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
-          
-                                          <div className='w-3 h-4 border-2'></div>
-
-                                                    <div className='w-3 h-4 
-border-2'></div>
-                                                    <div className='w-3 h-4 border-2'></div>
-                                             
-       <div className='w-3 h-4 border-2'></div> */}
+                                                            console.log(cor)
+                                                            return (
+                                                                <div
+                                                                    className={`w-3 h-4 border-2 border-${cor}`}
+                                                                ></div>
+                                                            )
+                                                        },
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
