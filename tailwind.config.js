@@ -28,6 +28,14 @@ module.exports = {
         'text-verde',
         'text-amarelo',
         'text-marrom',
+        'border-laranja',
+        'border-azul-claro',
+        'border-roxo',
+        'border-rosa',
+        'border-vermelho',
+        'border-verde',
+        'border-amarelo',
+        'border-marrom',
     ]
 }
 
