@@ -1,4 +1,9 @@
-import { CartaEvento } from './CartaCofreouSorte'
+import { CartaEvento, CartaEventoOutput } from './CartaCofreouSorte'
+
+export interface BaralhoOutput {
+    cartasCofre: CartaEventoOutput[]
+    cartasSorte: CartaEventoOutput[]
+}
 
 export class Baralho {
     private cartasCofre: CartaEvento[] = []
@@ -54,5 +59,12 @@ export class Baralho {
 
     devolverCartaSorte(carta: CartaEvento): void {
         this.cartasSorte.unshift(carta)
+    }
+
+    toObject(): BaralhoOutput {
+        return {
+            cartasCofre: this.cartasCofre.map(carta => carta.toObject()),
+            cartasSorte: this.cartasSorte.map(carta => carta.toObject()),
+        }
     }
 }

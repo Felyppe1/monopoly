@@ -23,7 +23,7 @@ import {
     PERSONAGEM,
 } from './jogador'
 
-import { Baralho } from './Baralho'
+import { Baralho, BaralhoOutput } from './Baralho'
 import {
     CartaEvento,
     TIPO_CARTA,
@@ -56,6 +56,7 @@ export interface JogoOutput
     jogadores: JogadorOutput[]
     espacosTabuleiro: EspacoDoTabuleiroOutputUnion[]
     banco: BancoOutput
+    baralho: BaralhoOutput
 }
 
 export class Jogo {
@@ -833,6 +834,7 @@ export class Jogo {
             banco: this.banco.toObject(),
             quantidadeDuplas: this.quantidadeDuplas,
             jogouOsDados: this.jogouOsDados,
+            baralho: this.baralho.toObject(),
         }
     }
 }
