@@ -8,6 +8,7 @@ import {
     TituloDePosse,
 } from './Carta'
 import { NomeEspaco } from './dados/nome-espacos'
+import { CartaEvento } from './CartaCofreouSorte'
 
 export enum PERSONAGEM {
     CACHORRO = 'cachorro',
@@ -50,6 +51,7 @@ export class Jogador {
     private estaPreso: boolean
     private turnosNaPrisao: number
     private tentativasDuplo: number
+    private cartasSaidaPrisao: CartaEvento[] = []
 
     static create({ nome, personagem }: CriarJogadorInput) {
         const SALDO_INICIAL = 1500
@@ -127,6 +129,18 @@ export class Jogador {
         this.estaPreso = false
         this.turnosNaPrisao = 0
         this.tentativasDuplo = 0
+    }
+
+    adicionarCartaSaidaPrisao(carta: CartaEvento) {
+        this.cartasSaidaPrisao.push(carta)
+    }
+
+    temCartaSaidaPrisao(): boolean {
+        return this.cartasSaidaPrisao.length > 0
+    }
+
+    usarCartaSaidaPrisao(): CartaEvento | null {
+        return this.cartasSaidaPrisao.pop() || null
     }
 
     getEstaPreso() {
@@ -224,6 +238,28 @@ export class Jogador {
 
     getPersonagem() {
         return this.personagem
+    }
+
+    getNome() {
+        return this.nome
+    }
+
+    getQuantidadeTotalCasas(): number {
+        return this.cartas.reduce((total, carta) => {
+            if (carta instanceof TituloDePosse) {
+                return total + (carta.getNumCasas ? carta.getNumCasas() : 0)
+            }
+            return total
+        }, 0)
+    }
+
+    getQuantidadeTotalHoteis(): number {
+        return this.cartas.reduce((total, carta) => {
+            if (carta instanceof TituloDePosse) {
+                return total + (carta.getNumHoteis ? carta.getNumHoteis() : 0)
+            }
+            return total
+        }, 0)
     }
 
     toObject(): JogadorOutput {

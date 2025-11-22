@@ -74,6 +74,9 @@ export class TituloDePosse extends Carta {
     private precoCasa: number
     private precoHotel: number
 
+    private numeroCasas: number = 0
+    private numeroHoteis: number = 0
+
     constructor({
         nome,
         valorHipoteca,
@@ -102,6 +105,27 @@ export class TituloDePosse extends Carta {
 
     getValorAluguel(nCasas: number): number {
         return this.valorAluguel[Math.min(nCasas, this.valorAluguel.length - 1)]
+    }
+
+    getNumCasas(): number {
+        return this.numeroCasas
+    }
+
+    getNumHoteis(): number {
+        return this.numeroHoteis
+    }
+
+    adicionarCasa() {
+        if (this.numeroCasas < 4 && this.numeroHoteis === 0) {
+            this.numeroCasas++
+        }
+    }
+
+    adicionarHotel() {
+        if (this.numeroCasas === 4) {
+            this.numeroCasas = 0
+            this.numeroHoteis = 1
+        }
     }
 
     toObject(): TituloDePosseOutput {
