@@ -24,8 +24,8 @@ export function Modais() {
         for (const jogador of estadoJogo.jogadores) {
             if (jogador.personagem === jogadorAtual.personagem) {
                 const espacoTabuleiro =
-                    // estadoJogo.espacosTabuleiro[jogador.posicao]
-                    estadoJogo.espacosTabuleiro[7]
+                    estadoJogo.espacosTabuleiro[jogador.posicao]
+                // estadoJogo.espacosTabuleiro[7]
 
                 const cartaEstaNoBanco = estadoJogo.banco.cartas.find(
                     carta => carta.nome === espacoTabuleiro.nome,
