@@ -46,6 +46,9 @@ export default function Partida() {
                                             espaco.posicao === jogador.posicao,
                                     )!
 
+                                const eJogadorDaVez =
+                                    index === estadoJogo.indiceJogadorAtual
+
                                 // Agrupar propriedades por cor
                                 const propriedadesPorCor = new Map<
                                     string,
@@ -92,9 +95,18 @@ export default function Partida() {
                                                         </div>
 
                                                         <div className="flex flex-col items-start">
-                                                            <span className="font-bold text-lg leading-tight text-gray-800">
-                                                                {jogador.nome}
-                                                            </span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-bold text-lg leading-tight text-gray-800">
+                                                                    {
+                                                                        jogador.nome
+                                                                    }
+                                                                </span>
+                                                                {eJogadorDaVez && (
+                                                                    <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
+                                                                        SUA VEZ
+                                                                    </span>
+                                                                )}
+                                                            </div>
 
                                                             <span className="font-extrabold text-2xl text-teal-700">
                                                                 R${' '}
@@ -369,7 +381,7 @@ function CartaPropriedade({
         vermelho: { border: 'border-red-600', bg: 'bg-red-50' },
         amarelo: { border: 'border-yellow-400', bg: 'bg-yellow-50' },
         verde: { border: 'border-green-600', bg: 'bg-green-50' },
-        azul: { border: 'border-blue-700', bg: 'bg-blue-50' },
+        azul: { border: 'border-azul', bg: 'bg-blue-50' },
         roxo: { border: 'border-purple-600', bg: 'bg-purple-50' },
     }
 

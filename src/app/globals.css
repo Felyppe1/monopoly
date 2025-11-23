@@ -8,6 +8,7 @@
 :root {
     --laranja: #ff6f00;
     --azul-claro: #7dbaff;
+    --azul: #0072BB;
     --roxo: #7928ca;
     --rosa: #ff0080;
     --vermelho: #ff0000;
@@ -66,6 +67,9 @@
         background: var(--azul-claro);
 
     }
+    .azul {
+        background: var(--azul);
+    }
     .rosa{
         background: var(--rosa);
     }
@@ -82,6 +86,7 @@
 @theme inline {
     --color-laranja: var(--laranja);
     --color-azul-claro: var(--azul-claro);
+    --color-azul: var(--azul);
     --color-roxo: var(--roxo);
     --color-rosa: var(--rosa);
     --color-vermelho: var(--vermelho);
