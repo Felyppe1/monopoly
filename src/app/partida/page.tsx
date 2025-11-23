@@ -238,7 +238,7 @@ export default function Partida() {
                                                                                             .valorAluguel[0]
                                                                                     }
                                                                                     numeroCasas={
-                                                                                        3
+                                                                                        0
                                                                                     }
                                                                                 />
                                                                             ),
