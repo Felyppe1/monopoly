@@ -3,6 +3,8 @@ import { useJogoStore } from '@/store/useJogoStore'
 import { useEffect, useState } from 'react'
 import { ComprarEspaco } from './ComprarEspaco'
 import { Default } from './Default'
+import { NegociacaoModal } from './Negociacoes'
+import { JogadorOutput } from '@/domain/jogador'
 
 export function Modais() {
     const [comprarEspaco, setComprarEspaco] = useState<CartaOutputUnion | null>(

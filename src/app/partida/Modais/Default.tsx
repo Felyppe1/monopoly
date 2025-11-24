@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button'
 import { useJogoStore } from '@/store/useJogoStore'
 import { useState } from 'react'
+import { NegociacaoModal } from './Negociacoes'
+import { Jogador } from '@/domain/jogador'
 
 export function Default() {
     const [dado1, setDado1] = useState(5)
@@ -36,7 +38,7 @@ export function Default() {
 
     const gerarPontosDado = (numero: number) => {
         const pontos = [
-            [], // não usado
+            [],
             [4], // 1
             [0, 8], // 2
             [0, 4, 8], // 3
@@ -53,8 +55,27 @@ export function Default() {
 
     const virarTurno = () => {
         jogo.virarTurno()
-
         setJogo(jogo)
+    }
+
+    const [negociar, setNegociar] = useState<{ aberto: boolean } | null>(null)
+    const [outrosJogadores, setOutrosJogadores] = useState<Jogador[]>([])
+
+    const negociar_ = () => {
+        const todos: Jogador[] = estadoJogo.jogadores.map((_, i) =>
+            jogo.getJogador(i),
+        )
+
+        const idxAtual = estadoJogo.indiceJogadorAtual
+        const outros = todos.filter((_, i) => i !== idxAtual)
+
+        setOutrosJogadores(outros)
+        setNegociar({ aberto: true })
+    }
+
+    const handleNegociacaoSucesso = (data?: any) => {
+        setJogo(jogo)
+        setNegociar(null)
     }
 
     return (
@@ -98,6 +119,12 @@ export function Default() {
                     {rolando ? 'ROLANDO...' : 'JOGAR DADOS'}
                 </Button>
                 <Button
+                    onClick={negociar_}
+                    disabled={estadoJogo.jogouOsDados || rolando}
+                >
+                    NEGOCIAR
+                </Button>
+                <Button
                     onClick={virarTurno}
                     disabled={
                         !estadoJogo.jogouOsDados ||
@@ -107,6 +134,18 @@ export function Default() {
                     VIRAR TURNO
                 </Button>
             </div>
+
+            {negociar?.aberto && (
+                <NegociacaoModal
+                    aberto={negociar.aberto}
+                    jogadorAtual={jogo.getJogador(
+                        estadoJogo.indiceJogadorAtual,
+                    )}
+                    outrosJogadores={outrosJogadores}
+                    onFechar={() => setNegociar(null)}
+                    onSucesso={handleNegociacaoSucesso}
+                />
+            )}
         </>
     )
 }

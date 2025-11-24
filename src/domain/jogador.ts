@@ -135,6 +135,14 @@ export class Jogador {
         this.cartasSaidaPrisao.push(carta)
     }
 
+    getCartaSaidaPrisao(): CartaEvento[] {
+        return this.cartasSaidaPrisao
+    }
+
+    getCartas(): Carta[] {
+        return this.cartas
+    }
+
     temCartaSaidaPrisao(): boolean {
         return this.cartasSaidaPrisao.length > 0
     }
@@ -205,6 +213,21 @@ export class Jogador {
         this.saldo -= valor
 
         return true
+    }
+
+    public removerCarta(nomeEspaco: NomeEspaco): boolean {
+        const cartaIndex: number = this.cartas.findIndex(
+            carta => carta.getNome() === nomeEspaco,
+        )
+        if (cartaIndex !== -1) {
+            this.cartas.splice(cartaIndex, 1)
+            return true
+        }
+        return false
+    }
+
+    public adicionarCarta(carta: Carta) {
+        this.cartas.push(carta)
     }
 
     getCarta(nomeEspaco: NomeEspaco) {

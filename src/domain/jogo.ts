@@ -821,6 +821,10 @@ export class Jogo {
         return jogador
     }
 
+    getJogador(indice: number): Jogador {
+        return this.jogadores[indice]
+    }
+
     toObject(): JogoOutput {
         return {
             jogadores: this.jogadores.map(jogador => jogador.toObject()),
