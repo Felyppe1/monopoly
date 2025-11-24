@@ -37,18 +37,15 @@ export function Tabuleiro() {
                         jogador =>
                             jogador.posicao === espaco.posicao &&
                             !jogador.falido,
-                    ) // Filtra falidos
+                    )
                     .map(jogador => jogador.personagem)
 
-                // Lógica para encontrar o dono
                 let donoPersonagem = null
                 if (espaco.nome) {
-                    // Verifica se a carta ainda está no banco
                     const cartaNoBanco = estadoJogo.banco.cartas.find(
                         c => c.nome === espaco.nome,
                     )
 
-                    // Se NÃO está no banco, alguém (ou ninguém se foi perdida/evento) tem ela
                     if (!cartaNoBanco) {
                         const jogadorDono = estadoJogo.jogadores.find(j =>
                             j.cartas.some(c => c.nome === espaco.nome),
@@ -83,7 +80,7 @@ export function Tabuleiro() {
                         nome={espaco.nome}
                         {...getPropriedades()}
                         personagens={personagensNaPosicao}
-                        dono={donoPersonagem} // Passa o dono para o componente
+                        dono={donoPersonagem}
                     />
                 )
             })}

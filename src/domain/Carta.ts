@@ -120,7 +120,6 @@ export class TituloDePosse extends Carta {
         }
     }
 
-    // NOVO: Reseta construções ao devolver para o banco
     resetar() {
         this.numeroCasas = 0
         this.numeroHoteis = 0

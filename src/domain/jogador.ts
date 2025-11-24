@@ -30,7 +30,7 @@ export interface JogadorInput {
     estaPreso: boolean
     turnosNaPrisao: number
     tentativasDuplo: number
-    falido: boolean // NOVO
+    falido: boolean
 }
 
 export interface JogadorOutput extends Omit<JogadorInput, 'cartas'> {
@@ -53,7 +53,7 @@ export class Jogador {
     private turnosNaPrisao: number
     private tentativasDuplo: number
     private cartasSaidaPrisao: CartaEvento[] = []
-    private falido: boolean // NOVO
+    private falido: boolean
 
     static create({ nome, personagem }: CriarJogadorInput) {
         const SALDO_INICIAL = 1500
@@ -66,7 +66,7 @@ export class Jogador {
             turnosNaPrisao: 0,
             tentativasDuplo: 0,
             saldo: SALDO_INICIAL,
-            falido: false, // NOVO
+            falido: false,
         })
     }
 
@@ -96,12 +96,10 @@ export class Jogador {
         this.falido = falido
     }
 
-    // NOVO: Método de Falência
     declararFalencia(banco: Banco) {
         this.falido = true
         this.saldo = 0
 
-        // Devolve cartas e reseta construções
         this.cartas.forEach(carta => {
             if (carta instanceof TituloDePosse) {
                 carta.resetar()
@@ -250,7 +248,7 @@ export class Jogador {
             estaPreso: this.estaPreso,
             turnosNaPrisao: this.turnosNaPrisao,
             tentativasDuplo: this.tentativasDuplo,
-            falido: this.falido, // NOVO
+            falido: this.falido,
         }
     }
 }
