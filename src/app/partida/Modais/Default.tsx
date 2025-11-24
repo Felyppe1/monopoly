@@ -1,50 +1,54 @@
 import { Button } from '@/components/ui/button'
 import { useJogoStore } from '@/store/useJogoStore'
-import { useState } from 'react'
+import { useState, useEffect } from 'react' // Importar useEffect
 
 export function Default() {
-    const [dado1, setDado1] = useState(5)
-    const [dado2, setDado2] = useState(3)
-    const [rolando, setRolando] = useState(false)
-
     const jogo = useJogoStore(state => state.jogo!)
     const setJogo = useJogoStore(state => state.setJogo)
-
     const estadoJogo = jogo!.toObject()
+
+    // Inicializa com o valor salvo no backend, não com 5 e 3 fixos
+    const [dado1, setDado1] = useState(estadoJogo.ultimoResultadoDados.dado1)
+    const [dado2, setDado2] = useState(estadoJogo.ultimoResultadoDados.dado2)
+    const [rolando, setRolando] = useState(false)
+
+    // Sincroniza se o jogo mudar (ex: troca de turno ou carregamento)
+    useEffect(() => {
+        setDado1(estadoJogo.ultimoResultadoDados.dado1)
+        setDado2(estadoJogo.ultimoResultadoDados.dado2)
+    }, [estadoJogo.ultimoResultadoDados])
 
     const rolarDados = () => {
         setRolando(true)
 
-        // Simular movimento dos dados
         const intervalo = setInterval(() => {
             setDado1(Math.floor(Math.random() * 6) + 1)
             setDado2(Math.floor(Math.random() * 6) + 1)
         }, 100)
 
-        // Parar após 1 segundo e meio e definir os valores finais
         setTimeout(() => {
             clearInterval(intervalo)
+
+            // O jogo calcula, processa o movimento, aluguel automático e salva os dados
             const resultado = jogo.jogarDados()
             setJogo(jogo)
 
             setDado1(resultado.dado1)
             setDado2(resultado.dado2)
-
             setRolando(false)
         }, 1500)
     }
 
     const gerarPontosDado = (numero: number) => {
         const pontos = [
-            [], // não usado
-            [4], // 1
-            [0, 8], // 2
-            [0, 4, 8], // 3
-            [0, 2, 6, 8], // 4
-            [0, 2, 4, 6, 8], // 5
-            [0, 1, 2, 6, 7, 8], // 6
+            [],
+            [4],
+            [0, 8],
+            [0, 4, 8],
+            [0, 2, 6, 8],
+            [0, 2, 4, 6, 8],
+            [0, 1, 2, 6, 7, 8],
         ]
-
         return Array.from(
             { length: 9 },
             (_, i) => pontos[numero]?.includes(i) || false,
@@ -53,7 +57,6 @@ export function Default() {
 
     const virarTurno = () => {
         jogo.virarTurno()
-
         setJogo(jogo)
     }
 

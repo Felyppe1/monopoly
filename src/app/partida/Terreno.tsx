@@ -10,6 +10,7 @@ interface TerrenoProps {
     valor?: number
     cor?: COR_ENUM
     personagens?: PERSONAGEM[]
+    dono?: PERSONAGEM | null // NOVO: Propriedade para receber o dono
 }
 
 export function Terreno({
@@ -19,6 +20,7 @@ export function Terreno({
     valor,
     cor,
     personagens,
+    dono,
 }: TerrenoProps) {
     const ehLateral =
         (posicao > 10 && posicao < 20) || (posicao > 30 && posicao < 40)
@@ -27,13 +29,53 @@ export function Terreno({
     const ehBorda =
         posicao === 0 || posicao === 10 || posicao === 20 || posicao === 30
 
+    // Função auxiliar para definir cor da borda baseada no dono
+    const getCorDono = (p: PERSONAGEM) => {
+        switch (p) {
+            case PERSONAGEM.CACHORRO:
+                return 'border-red-500'
+            case PERSONAGEM.CARRO:
+                return 'border-blue-500'
+            case PERSONAGEM.CARTOLA:
+                return 'border-yellow-500'
+            case PERSONAGEM.DEDAL:
+                return 'border-purple-500'
+            case PERSONAGEM.GATO:
+                return 'border-orange-500'
+            case PERSONAGEM.NAVIO:
+                return 'border-cyan-500'
+            case PERSONAGEM.PATO:
+                return 'border-green-500'
+            case PERSONAGEM.PINGUIM:
+                return 'border-gray-800'
+            default:
+                return 'border-black'
+        }
+    }
+
     return (
         <div
-            className={`${ehLateral ? '' : 'flex-col'} flex border border-black text-xs relative group`}
+            className={`
+                ${ehLateral ? '' : 'flex-col'} 
+                flex border 
+                ${dono ? `border-4 ${getCorDono(dono)}` : 'border-black'} 
+                text-xs relative group
+            `}
             style={{
                 gridArea: `c${posicao}`,
             }}
         >
+            {/* Ícone do Dono no Canto */}
+            {dono && (
+                <div className="absolute -top-2 -right-2 z-20 bg-white rounded-full border border-black p-0.5 shadow-md">
+                    <img
+                        src={`/personagem-${dono}.png`}
+                        className="w-4 h-4"
+                        alt="dono"
+                    />
+                </div>
+            )}
+
             {tipo === 'propriedade' && !ehLateral && (
                 <div className={`h-5 bg-${corParaTailwind(cor!)}`}></div>
             )}
@@ -45,15 +87,11 @@ export function Terreno({
             {ehBorda ? (
                 <div className="flex flex-col justify-between h-full">
                     {tipo === 'ponto de partida' && (
-                        <>
-                            <img
-                                src="/inicio.png"
-                                className="w-[90%] self-center"
-                            />
-                            {/* <p className='self-center mb-[10%] font-bold'>APENAS VISITANDO</p> */}
-                        </>
+                        <img
+                            src="/inicio.png"
+                            className="w-[90%] self-center"
+                        />
                     )}
-
                     {tipo === 'prisão' && (
                         <>
                             <img
@@ -65,7 +103,6 @@ export function Terreno({
                             </p>
                         </>
                     )}
-
                     {tipo === 'estacionamento' && (
                         <>
                             <img
@@ -77,7 +114,6 @@ export function Terreno({
                             </p>
                         </>
                     )}
-
                     {tipo === 'vá para prisão' && (
                         <>
                             <img
@@ -137,7 +173,6 @@ export function Terreno({
                                             className="w-14"
                                         />
                                     )}
-
                                     {tipo === 'companhia' &&
                                         nome ===
                                             'Companhia de Saneamento Básico' && (
@@ -195,10 +230,6 @@ export function Terreno({
                             )}
                         </>
                     )}
-
-                    {/* <span className="text-gray-600">
-                        {posicao}
-                    </span> */}
                 </div>
             )}
 
@@ -208,17 +239,13 @@ export function Terreno({
 
             {personagens?.map((personagem, index) => {
                 const total = personagens.length
-                const perColumn = 4 // máximo de 4 por coluna
-                const col = Math.floor(index / perColumn) // em qual coluna está
-                const row = index % perColumn // em qual linha dentro da coluna
-
+                const perColumn = 4
+                const col = Math.floor(index / perColumn)
+                const row = index % perColumn
                 const spacingY = ehLateral ? 70 : 60
                 const spacingX = ehLateral ? 60 : 80
-
-                // Centralizar no meio
                 const totalCols = Math.ceil(total / perColumn)
                 const totalRows = Math.min(total, perColumn)
-
                 const offsetX = (col - (totalCols - 1) / 2) * spacingX
                 const offsetY = (row - (totalRows - 1) / 2) * spacingY
 
@@ -227,7 +254,7 @@ export function Terreno({
                         key={personagem}
                         src={`/personagem-${personagem}.png`}
                         alt=""
-                        className="absolute w-10 left-1/2 top-1/2 group-hover:opacity-10 transition-opacity duration-100"
+                        className="absolute w-10 left-1/2 top-1/2 group-hover:opacity-10 transition-opacity duration-100 z-10"
                         style={{
                             transform: ehLateral
                                 ? `translate(calc(-50% + ${offsetY}%), calc(-50% + ${offsetX}%))`
