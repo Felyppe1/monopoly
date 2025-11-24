@@ -821,6 +821,122 @@ export class Jogo {
         return jogador
     }
 
+    public botDeveComprarEspaco(): boolean {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        const espaco = this.espacosTabuleiro[jogador.getPosicao()] 
+        const carta = this.banco.getCarta(espaco.getNome())
+
+        if (!carta) return false
+        return jogador.getSaldo() >= carta.getPreco()
+    }
+
+    public botGerenciarConstrucoes() {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        const estadoJogador = jogador.toObject() 
+        
+        estadoJogador.cartas.forEach(cartaObj => {
+            if (cartaObj.tipo === 'TituloDePosse') {
+                // Recuperar a instância real da carta no jogador
+                const titulo = jogador.getCarta(cartaObj.nome) as TituloDePosse
+                
+                if (titulo) {
+                    // Regra: Pode construir se tiver dinheiro e não tiver hotel
+                    // Nota: O código original de TituloDePosse não valida saldo ou cor completa no método adicionarCasa,
+                    // apenas incrementa. Vamos adicionar a validação financeira aqui.
+                    
+                    // Verificar se possui o grupo de cor completo (Regra clássica do Monopoly)
+                    const totalTitulosDaCor = this.espacosTabuleiro.filter(e => 
+                         e.getTipo() === TIPO_ESPACO_ENUM.PROPRIEDADE && 
+                         (e as Propriedade).getCor() === titulo.getCor()
+                    ).length
+                    
+                    const titulosDoJogador = jogador.getQuantidadeDeTitulos(titulo.getCor())
+                    
+                    if (titulosDoJogador === totalTitulosDaCor) {
+                        // Tenta construir o máximo possível com o saldo atual
+                        const precoCasa = titulo.toObject().precoCasa // Acessando via toObject pois precoCasa é private na classe fornecida
+                        
+                        // Loop simples para adicionar 1 casa por turno por propriedade para não gastar tudo de uma vez
+                        if (titulo.getNumCasas() < 4 && jogador.getSaldo() > (precoCasa + 200)) { // Mantém uma reserva de 200
+                            if (jogador.pagar(precoCasa)) {
+                                titulo.adicionarCasa()
+                                console.log(`Bot ${jogador.getNome()} construiu casa em ${titulo.getNome()}`)
+                            }
+                        } else if (titulo.getNumCasas() === 4 && titulo.getNumHoteis() === 0 && jogador.getSaldo() > (titulo.toObject().precoHotel + 200)) {
+                             if (jogador.pagar(titulo.toObject().precoHotel)) {
+                                titulo.adicionarHotel()
+                                console.log(`Bot ${jogador.getNome()} construiu HOTEL em ${titulo.getNome()}`)
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    // 1. Decisão de sair da prisão - BOT
+    public botTentarSairDaPrisao(): boolean {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        if (!jogador.getEstaPreso()) return false
+
+        if (jogador.temCartaSaidaPrisao()) {
+            this.jogadorUsaCartaSaidaPrisao()
+            return true
+        }
+        return false
+    }
+
+    // 2. Decisão de Construir Casas/Hotéis - BOT
+    public botRealizarConstrucoes(): void {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        const saldoReserva = 200 
+
+        this.espacosTabuleiro.forEach(espaco => {
+            if (espaco instanceof Propriedade) {
+                const titulo = espaco.getTituloDePosse()
+                
+                if (this.getProprietario(espaco.getNome()) === jogador) {
+                    const cor = titulo.getCor()
+                    
+                    const totalDaCor = this.espacosTabuleiro.filter(e => 
+                        e instanceof Propriedade && e.getTituloDePosse().getCor() === cor
+                    ).length
+                    const qtdDoJogador = jogador.getQuantidadeDeTitulos(cor)
+
+                    if (qtdDoJogador === totalDaCor) {
+                        const custoCasa = titulo.toObject().precoCasa 
+                        const custoHotel = titulo.toObject().precoHotel
+
+                        if (titulo.getNumCasas() < 4 && jogador.getSaldo() >= (custoCasa + saldoReserva)) {
+                            if (jogador.pagar(custoCasa)) {
+                                titulo.adicionarCasa()
+                                console.log(`[BOT] Construiu Casa em ${espaco.getNome()}`)
+                            }
+                        } else if (titulo.getNumCasas() === 4 && titulo.getNumHoteis() === 0 && jogador.getSaldo() >= (custoHotel + saldoReserva)) {
+                             if (jogador.pagar(custoHotel)) {
+                                titulo.adicionarHotel()
+                                console.log(`[BOT] Construiu HOTEL em ${espaco.getNome()}`)
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    // 3. Método auxiliar para verificar se pode comprar a carta atual - BOT
+    public botPodeComprarCartaAtual(): boolean {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        const espaco = this.espacosTabuleiro[jogador.getPosicao()]
+        
+        const carta = this.banco.getCarta(espaco.getNome())
+        
+        if (carta && jogador.getSaldo() >= carta.getPreco()) {
+            return true
+        }
+        return false
+    }
+
     toObject(): JogoOutput {
         return {
             jogadores: this.jogadores.map(jogador => jogador.toObject()),

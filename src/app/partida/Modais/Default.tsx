@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { useJogoStore } from '@/store/useJogoStore'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export function Default() {
     const [dado1, setDado1] = useState(5)
@@ -11,6 +11,19 @@ export function Default() {
     const setJogo = useJogoStore(state => state.setJogo)
 
     const estadoJogo = jogo!.toObject()
+
+    useEffect(() => {
+        const jogadorAtual = estadoJogo.jogadores[estadoJogo.indiceJogadorAtual]
+
+        if (jogadorAtual.ehBot && !rolando) {
+            
+            const precisaJogar = !estadoJogo.jogouOsDados || (estadoJogo.quantidadeDuplas > 0 && !jogadorAtual.estaPreso)
+
+            if (precisaJogar) {
+                rolarDados()
+            }
+        }
+    }, [jogo])
 
     const rolarDados = () => {
         setRolando(true)
@@ -24,11 +37,18 @@ export function Default() {
         // Parar após 1 segundo e meio e definir os valores finais
         setTimeout(() => {
             clearInterval(intervalo)
-            const resultado = jogo.jogarDados()
-            setJogo(jogo)
 
-            setDado1(resultado.dado1)
-            setDado2(resultado.dado2)
+            try{
+                const resultado = jogo.jogarDados()          
+                setJogo(jogo)
+                setDado1(resultado.dado1)
+                setDado2(resultado.dado2)    
+            } catch (e) {
+                console.error(e)
+            } finally {
+                setRolando(false)
+            }
+            
 
             setRolando(false)
         }, 1500)

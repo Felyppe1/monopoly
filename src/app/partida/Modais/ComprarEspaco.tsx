@@ -1,5 +1,5 @@
 import { useJogoStore } from '@/store/useJogoStore'
-// import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
     TabuleiroDialog,
     TabuleiroDialogContent,
@@ -23,6 +23,22 @@ interface ComprarEspacoProps {
 export function ComprarEspaco({ carta, onClose }: ComprarEspacoProps) {
     const jogo = useJogoStore(state => state.jogo!)
     const setJogo = useJogoStore(state => state.setJogo)
+
+    useEffect(() => {
+        const jogadorAtual = jogo.toObject().jogadores[jogo.toObject().indiceJogadorAtual]
+
+        if (jogadorAtual.ehBot) {
+            const timer = setTimeout(() => {
+                if (jogo.botPodeComprarCartaAtual()) {
+                    handleComprar()
+                } else {
+                    onClose()
+                }
+            }, 1500)
+
+            return () => clearTimeout(timer)
+        }
+    }, [])
 
     const handleComprar = () => {
         jogo.comprarEspaco()
