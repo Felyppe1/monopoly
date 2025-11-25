@@ -1,7 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-
 import { Terreno } from './Terreno'
 import { useJogoStore } from '@/store/useJogoStore'
 import { TIPO_ESPACO_ENUM } from '@/domain/EspacoDoTabuleiro'
@@ -9,7 +8,6 @@ import { Modais } from './Modais'
 
 export function Tabuleiro() {
     const jogo = useJogoStore(state => state.jogo!)
-
     const estadoJogo = jogo!.toObject()
 
     return (
@@ -35,8 +33,28 @@ export function Tabuleiro() {
         >
             {estadoJogo.espacosTabuleiro.map((espaco, i) => {
                 const personagensNaPosicao = estadoJogo.jogadores
-                    .filter(jogador => jogador.posicao === espaco.posicao)
+                    .filter(
+                        jogador =>
+                            jogador.posicao === espaco.posicao &&
+                            !jogador.falido,
+                    )
                     .map(jogador => jogador.personagem)
+
+                let donoPersonagem = null
+                if (espaco.nome) {
+                    const cartaNoBanco = estadoJogo.banco.cartas.find(
+                        c => c.nome === espaco.nome,
+                    )
+
+                    if (!cartaNoBanco) {
+                        const jogadorDono = estadoJogo.jogadores.find(j =>
+                            j.cartas.some(c => c.nome === espaco.nome),
+                        )
+                        if (jogadorDono) {
+                            donoPersonagem = jogadorDono.personagem
+                        }
+                    }
+                }
 
                 const getPropriedades = () => {
                     if (espaco.tipo === TIPO_ESPACO_ENUM.PROPRIEDADE) {
@@ -45,19 +63,12 @@ export function Tabuleiro() {
                             valor: espaco.tituloDePosse.preco,
                         }
                     }
-
                     if (espaco.tipo === TIPO_ESPACO_ENUM.ESTACAO_DE_METRO) {
-                        return {
-                            valor: espaco.cartaEstacaoDeMetro.preco,
-                        }
+                        return { valor: espaco.cartaEstacaoDeMetro.preco }
                     }
-
                     if (espaco.tipo === TIPO_ESPACO_ENUM.COMPANHIA) {
-                        return {
-                            valor: espaco.cartaCompanhia.preco,
-                        }
+                        return { valor: espaco.cartaCompanhia.preco }
                     }
-
                     return {}
                 }
 
@@ -69,24 +80,22 @@ export function Tabuleiro() {
                         nome={espaco.nome}
                         {...getPropriedades()}
                         personagens={personagensNaPosicao}
+                        dono={donoPersonagem}
                     />
                 )
             })}
 
             <div
                 className="flex flex-col justify-center items-center relative border border-black bg-green-100 p-4"
-                style={{
-                    gridArea: 'm',
-                }}
+                style={{ gridArea: 'm' }}
             >
                 <Image
                     src="/monopoly-logo.png"
-                    alt='Logo do Monopoly escrito "Monopoly" em branco em um fundo vermelho com o boneco do jogo de terno preto em cima'
+                    alt="Logo"
                     className="absolute -rotate-45 mb-4"
                     width={400}
                     height={400}
                 />
-
                 <Modais />
             </div>
         </div>

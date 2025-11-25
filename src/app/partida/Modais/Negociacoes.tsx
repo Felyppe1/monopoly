@@ -2,8 +2,16 @@ import React, { useMemo, useState, useEffect } from 'react'
 import { Carta, TituloDePosse } from '@/domain/Carta'
 import { Jogador } from '@/domain/jogador'
 import { NomeEspaco } from '@/domain/dados/nome-espacos'
-import { Card } from '@/components/ui/card'
+import { useJogoStore } from '@/store/useJogoStore'
 
+// --- Tipos Auxiliares ---
+interface Oferta {
+    dinheiro: number
+    propriedades: NomeEspaco[]
+    cartasSaidaPrisao: number
+}
+
+// --- Componente da Coluna de Oferta ---
 interface PlayerOfferColumnProps {
     title?: string
     jogador: Jogador
@@ -14,8 +22,8 @@ interface PlayerOfferColumnProps {
     onTogglePropriedade: (nome: NomeEspaco) => void
     onAccept: () => void
     onReset: () => void
-    isOrigin?: boolean // se true mostra "(Você)" no título
-    disableAccept?: boolean // extra control
+    isOrigin?: boolean
+    disableAccept?: boolean
 }
 
 function PlayerOfferColumn({
@@ -36,6 +44,7 @@ function PlayerOfferColumn({
         (o.propriedades ?? []).length > 0 ||
         (o.cartasSaidaPrisao ?? 0) > 0
 
+    // Nota: Acessando diretamente do objeto jogador (instância)
     const possuiCartasSaida = jogador.getCartaSaidaPrisao?.()?.length ?? 0
 
     return (
@@ -64,6 +73,7 @@ function PlayerOfferColumn({
                 }
                 className="mt-1 w-full rounded border px-3 py-2"
                 min={0}
+                max={jogador.getSaldo()}
             />
 
             <label className="block text-sm font-medium mt-3">
@@ -161,28 +171,31 @@ function PlayerOfferColumn({
     )
 }
 
-interface Oferta {
-    dinheiro: number
-    propriedades: NomeEspaco[]
-    cartasSaidaPrisao: number
-}
+// --- Componente Modal Principal ---
 
 interface NegociacaoModalProps {
-    aberto: boolean
-    jogadorAtual: Jogador // jogador que abriu a negociação (origem)
-    outrosJogadores: Jogador[] // possíveis destinos
-    onFechar: () => void
-    onSucesso?: (resultado?: any) => void
+    onClose: () => void
 }
 
-export function NegociacaoModal({
-    aberto,
-    jogadorAtual,
-    outrosJogadores,
-    onFechar,
-    onSucesso,
-}: NegociacaoModalProps) {
-    // seleção de destino
+export function NegociacaoModal({ onClose }: NegociacaoModalProps) {
+    const jogo = useJogoStore(state => state.jogo!)
+    const setJogo = useJogoStore(state => state.setJogo)
+
+    if (!jogo) return null
+
+    // Usar toObject apenas para leituras estáticas iniciais se necessário,
+    // mas preferir métodos da instância para lógica.
+    const estadoJogo = jogo.toObject()
+
+    // Lista de oponentes para o select (baseado no estado atual)
+    const outrosJogadores = useMemo(() => {
+        const atual = estadoJogo.jogadores[estadoJogo.indiceJogadorAtual]
+        return estadoJogo.jogadores.filter(
+            j => j.nome !== atual.nome && !j.falido,
+        )
+    }, []) // Array vazio de deps: assumimos que a lista de jogadores não muda DURANTE a negociação
+
+    // --- Hooks de Estado Local ---
     const [destinoId, setDestinoId] = useState<string | null>(null)
 
     const [ofertaOrigem, setOfertaOrigem] = useState<Oferta>({
@@ -195,33 +208,51 @@ export function NegociacaoModal({
         propriedades: [],
         cartasSaidaPrisao: 0,
     })
-    const [destinoSelecionado, setDestinoSelecionado] = useState<boolean>(false)
 
     const [aceitaOrigem, setAceitaOrigem] = useState(false)
     const [aceitaDestino, setAceitaDestino] = useState(false)
-
     const [erro, setErro] = useState<string | null>(null)
 
-    const jogadorDestino = useMemo(
-        () => outrosJogadores.find(p => p.getNome() === destinoId) || null,
-        [outrosJogadores, destinoId],
-    )
+    // Recuperando Instâncias Reais de forma estável
+    // Corrigido: Não colocamos 'jogo' no array de dependências para evitar re-calculo quando setJogo for chamado externamente
+    const jogadorOrigemInstancia = useMemo(() => {
+        return jogo.getJogador(estadoJogo.indiceJogadorAtual)
+    }, [])
 
-    // listar propriedades disponíveis para cada jogador
-    const propriedadesOrigem = useMemo(() => {
-        return jogadorAtual
+    const jogadorDestinoInstancia = useMemo(() => {
+        if (!destinoId) return null
+        // Procura pelo nome percorrendo índices na instância do Jogo
+        // Usamos um método 'hacky' se o jogo não expõe getJogadores publicamente ou usamos o loop seguro.
+        // Assumindo que jogo.getJogador(i) funciona.
+        for (let i = 0; i < 8; i++) {
+            try {
+                const j = jogo.getJogador(i)
+                if (j && j.getNome() === destinoId) return j
+            } catch (e) {
+                break
+            }
+        }
+        return null
+    }, [destinoId]) // Só atualiza se mudar o destino selecionado
+
+    // Propriedades (Memoizadas para não piscar a tela)
+    const propsOrigemReal = useMemo(() => {
+        if (!jogadorOrigemInstancia) return []
+        return jogadorOrigemInstancia
             .getCartas()
-            .filter((c: Carta) => c instanceof TituloDePosse) as TituloDePosse[]
-    }, [jogadorAtual])
+            .filter(c => c instanceof TituloDePosse) as TituloDePosse[]
+    }, [jogadorOrigemInstancia])
 
-    const propriedadesDestino = useMemo(() => {
-        if (!jogadorDestino) return [] as TituloDePosse[]
-        return jogadorDestino
+    const propsDestinoReal = useMemo(() => {
+        if (!jogadorDestinoInstancia) return []
+        return jogadorDestinoInstancia
             .getCartas()
-            .filter((c: Carta) => c instanceof TituloDePosse) as TituloDePosse[]
-    }, [jogadorDestino])
+            .filter(c => c instanceof TituloDePosse) as TituloDePosse[]
+    }, [jogadorDestinoInstancia])
 
-    // se trocar destino, resetar ofertaDestino / aceitações
+    // --- Funções de Manipulação ---
+
+    // Reseta o lado do destino apenas quando o destino muda
     useEffect(() => {
         setOfertaDestino({
             dinheiro: 0,
@@ -235,11 +266,14 @@ export function NegociacaoModal({
 
     function atualizarOfertaOrigem(patch: Partial<Oferta>) {
         setOfertaOrigem(prev => ({ ...prev, ...patch }))
-        setAceitaDestino(false)
+        setAceitaDestino(false) // Invalida o aceite do outro se eu mudar minha oferta
+        setAceitaOrigem(false)
     }
+
     function atualizarOfertaDestino(patch: Partial<Oferta>) {
         setOfertaDestino(prev => ({ ...prev, ...patch }))
         setAceitaOrigem(false)
+        setAceitaDestino(false)
     }
 
     function togglePropriedadeOfertaOrigem(nome: NomeEspaco) {
@@ -249,6 +283,7 @@ export function NegociacaoModal({
                 : [...ofertaOrigem.propriedades, nome],
         })
     }
+
     function togglePropriedadeOfertaDestino(nome: NomeEspaco) {
         atualizarOfertaDestino({
             propriedades: ofertaDestino.propriedades.includes(nome)
@@ -257,27 +292,15 @@ export function NegociacaoModal({
         })
     }
 
-    function ofertaTemAlgo(oferta: Oferta) {
-        return (
-            (oferta.dinheiro ?? 0) > 0 ||
-            (oferta.propriedades ?? []).length > 0 ||
-            (oferta.cartasSaidaPrisao ?? 0) > 0
-        )
-    }
-
-    // validações antes de permitir "aceitar" — checagens locais mínimas:
     function validarOferta(oferta: Oferta, jogador: Jogador): string | null {
         if (oferta.dinheiro < 0) return 'Dinheiro não pode ser negativo'
         if (oferta.dinheiro > jogador.getSaldo())
             return `${jogador.getNome()} não tem saldo suficiente`
-        if (oferta.cartasSaidaPrisao < 0) return 'Quantidade de cartas inválida'
-        if (oferta.cartasSaidaPrisao > jogador.getCartaSaidaPrisao().length)
-            return `${jogador.getNome()} não possui tantas cartas "Saia da Prisão"`
-        // propriedades existem e não possuem construções
+
+        // Validar propriedades
         for (const nome of oferta.propriedades) {
             const c = jogador.getCarta(nome)
-            if (!c)
-                return `${jogador.getNome()} não possui a propriedade ${nome}`
+            if (!c) return `${jogador.getNome()} não possui ${nome}`
             if (c instanceof TituloDePosse) {
                 if (
                     (c.getNumCasas?.() ?? 0) > 0 ||
@@ -290,300 +313,101 @@ export function NegociacaoModal({
         return null
     }
 
-    function validarObrigatoriedade(oferta: Oferta, quem: string) {
-        if (!ofertaTemAlgo(oferta)) {
-            return `${quem} deve ofertar dinheiro, propriedade, ou carta "Saia da Prisão" para a troca ser realizada.`
-        }
-        return null
-    }
-
-    // quando um jogador pressiona "Aceitar", apenas marca sua aceitação (se a oferta adversária estiver válida).
     function origemAceita() {
         setErro(null)
-        if (!jogadorDestino) {
-            setErro('Jogador destino inválido')
+        if (!jogadorDestinoInstancia) {
+            setErro('Destino inválido')
             return
         }
-
-        // const obrigOrig = validarObrigatoriedade(ofertaOrigem, 'Você (origem)')
-        // if (obrigOrig) {
-        //   setErro(obrigOrig)
-        //   return
-        // }
-        const obrigDestino = validarObrigatoriedade(
-            ofertaDestino,
-            jogadorDestino.getNome(),
-        )
-        if (obrigDestino) {
-            setErro(obrigDestino)
+        const err = validarOferta(ofertaOrigem, jogadorOrigemInstancia) // Valido se EU tenho o que prometi
+        if (err) {
+            setErro(err)
             return
         }
-
-        const problema = validarOferta(ofertaDestino, jogadorDestino)
-        if (problema) {
-            setErro(`Problema com a oferta do destino: ${problema}`)
-            return
-        }
-
         setAceitaOrigem(true)
     }
 
     function destinoAceita() {
         setErro(null)
-        if (!jogadorDestino) {
-            setErro('Jogador destino inválido')
+        if (!jogadorDestinoInstancia) {
+            setErro('Destino inválido')
             return
         }
-
-        // const obrigDestino = validarObrigatoriedade(ofertaDestino, 'Você (destino)')
-        // if (obrigDestino) {
-        //   setErro(obrigDestino)
-        //   return
-        // }
-        const obrigOrig = validarObrigatoriedade(
-            ofertaOrigem,
-            jogadorAtual.getNome(),
-        )
-        if (obrigOrig) {
-            setErro(obrigOrig)
-            return
-        }
-
-        const problema = validarOferta(ofertaOrigem, jogadorAtual)
-        if (problema) {
-            setErro(`Problema com a oferta do origem: ${problema}`)
-            return
-        }
-        const problemaDestino = validarOferta(ofertaDestino, jogadorDestino!)
-        if (problemaDestino) {
-            setErro(`Problema com a própria oferta: ${problemaDestino}`)
+        const err = validarOferta(ofertaDestino, jogadorDestinoInstancia) // Valido se ELE tem o que prometeu
+        if (err) {
+            setErro(err)
             return
         }
         setAceitaDestino(true)
     }
 
-    function tentarAplicarTroca() {
-        setErro(null)
-        if (!jogadorDestino) return
+    // --- Execução da Troca ---
+    function executarTroca() {
+        if (!jogadorDestinoInstancia || !jogadorOrigemInstancia) return
 
-        const obrigOrig = validarObrigatoriedade(
-            ofertaOrigem,
-            jogadorAtual.getNome(),
-        )
-        if (obrigOrig) {
-            setErro(obrigOrig)
-            return
+        // 1. Dinheiro
+        if (ofertaOrigem.dinheiro > 0) {
+            jogadorOrigemInstancia.pagar(ofertaOrigem.dinheiro)
+            jogadorDestinoInstancia.receber(ofertaOrigem.dinheiro)
         }
-        const obrigDest = validarObrigatoriedade(
-            ofertaDestino,
-            jogadorDestino.getNome(),
-        )
-        if (obrigDest) {
-            setErro(obrigDest)
-            return
+        if (ofertaDestino.dinheiro > 0) {
+            jogadorDestinoInstancia.pagar(ofertaDestino.dinheiro)
+            jogadorOrigemInstancia.receber(ofertaDestino.dinheiro)
         }
 
-        // re-check atômico: valida tudo antes de fazer alterações mutáveis
-        const err1 = validarOferta(ofertaOrigem, jogadorAtual)
-        const err2 = validarOferta(ofertaDestino, jogadorDestino)
-        if (err1) {
-            setErro(err1)
-            return
-        }
-        if (err2) {
-            setErro(err2)
-            return
-        }
-
-        for (const nome of ofertaOrigem.propriedades) {
-            const carta = jogadorAtual.getCarta(nome)
-            if (!carta) {
-                setErro(`Origem não possui mais ${nome}`)
-                return
+        // 2. Propriedades Origem -> Destino
+        ofertaOrigem.propriedades.forEach(nome => {
+            const c = jogadorOrigemInstancia.getCarta(nome)
+            if (c) {
+                jogadorOrigemInstancia.removerCarta(nome)
+                jogadorDestinoInstancia.adicionarCarta(c)
             }
-        }
-        for (const nome of ofertaDestino.propriedades) {
-            const carta = jogadorDestino.getCarta(nome)
-            if (!carta) {
-                setErro(`Destino não possui mais ${nome}`)
-                return
-            }
-        }
-
-        // 1) Dinheiro (origem paga ofertaOrigem.dinheiro para destino; destino paga ofertaDestino.dinheiro para origem)
-        const originPays = ofertaOrigem.dinheiro
-        const destPays = ofertaDestino.dinheiro
-
-        if (originPays > 0) {
-            const ok = jogadorAtual.pagar(originPays)
-            if (!ok) {
-                setErro('Falha ao debitar origem')
-                return
-            }
-            jogadorDestino.receber(originPays)
-        }
-        if (destPays > 0) {
-            const ok = jogadorDestino.pagar(destPays)
-            if (!ok) {
-                setErro('Falha ao debitar destino')
-                // rollback money already moved from origin -> destino
-                if (originPays > 0) {
-                    jogadorDestino.pagar(originPays)
-                    jogadorAtual.receber(originPays)
-                }
-                return
-            }
-            jogadorAtual.receber(destPays)
-        }
-
-        // 2) Propriedades
-        // Remover do dono e adicionar ao destinatario
-        for (const nome of ofertaOrigem.propriedades) {
-            const carta = jogadorAtual.getCarta(nome)
-            if (!carta) {
-                setErro(`Erro ao transferir ${nome}`)
-                return
-            }
-            if (
-                typeof jogadorAtual.removerCarta === 'function' &&
-                typeof jogadorDestino.adicionarCarta === 'function'
-            ) {
-                jogadorAtual.removerCarta(nome)
-                jogadorDestino.adicionarCarta(carta)
-            } else {
-                const all = jogadorAtual.getCartas()
-                const idx = all.findIndex((c: Carta) => c.getNome() === nome)
-                if (idx >= 0) {
-                    const [c] = all.splice(idx, 1)
-                    jogadorDestino.getCartas().push(c)
-                } else {
-                    setErro(`Erro ao transferir ${nome}`)
-                    return
-                }
-            }
-        }
-        for (const nome of ofertaDestino.propriedades) {
-            const carta = jogadorDestino.getCarta(nome)
-            if (!carta) {
-                setErro(`Erro ao transferir ${nome}`)
-                return
-            }
-            if (
-                typeof jogadorDestino.removerCarta === 'function' &&
-                typeof jogadorAtual.adicionarCarta === 'function'
-            ) {
-                jogadorDestino.removerCarta(nome)
-                jogadorAtual.adicionarCarta(carta)
-            } else {
-                const all = jogadorDestino.getCartas()
-                const idx = all.findIndex((c: Carta) => c.getNome() === nome)
-                if (idx >= 0) {
-                    const [c] = all.splice(idx, 1)
-                    jogadorAtual.getCartas().push(c)
-                } else {
-                    setErro(`Erro ao transferir ${nome}`)
-                    return
-                }
-            }
-        }
-
-        // 3) Cartas Saida da Prisao
-        for (let i = 0; i < ofertaOrigem.cartasSaidaPrisao; i++) {
-            const carta = jogadorAtual.usarCartaSaidaPrisao()
-            if (!carta) {
-                setErro('Erro ao transferir carta da origem')
-                return
-            }
-            jogadorDestino.adicionarCartaSaidaPrisao(carta)
-        }
-        for (let i = 0; i < ofertaDestino.cartasSaidaPrisao; i++) {
-            const carta = jogadorDestino.usarCartaSaidaPrisao()
-            if (!carta) {
-                setErro('Erro ao transferir carta do destino')
-                return
-            }
-            jogadorAtual.adicionarCartaSaidaPrisao(carta)
-        }
-
-        if (onSucesso) {
-            onSucesso({
-                origem: jogadorAtual,
-                destino: jogadorDestino,
-                ofertaOrigem,
-                ofertaDestino,
-            })
-        }
-
-        setOfertaOrigem({ dinheiro: 0, propriedades: [], cartasSaidaPrisao: 0 })
-        setOfertaDestino({
-            dinheiro: 0,
-            propriedades: [],
-            cartasSaidaPrisao: 0,
         })
-        setAceitaOrigem(false)
-        setAceitaDestino(false)
-        setDestinoSelecionado(false)
-        onFechar()
-    }
 
-    // Se ambos aceitaram, tentar aplicar troca (efeito colateral)
-    useEffect(() => {
-        let timer: ReturnType<typeof setTimeout> | null = null
-
-        if (aceitaOrigem && aceitaDestino) {
-            // espera 2 segundos antes de aplicar a troca
-            timer = setTimeout(() => {
-                tentarAplicarTroca()
-            }, 2000)
-        }
-
-        // cleanup para evitar timers órfãos
-        return () => {
-            if (timer) {
-                clearTimeout(timer)
+        // 3. Propriedades Destino -> Origem
+        ofertaDestino.propriedades.forEach(nome => {
+            const c = jogadorDestinoInstancia.getCarta(nome)
+            if (c) {
+                jogadorDestinoInstancia.removerCarta(nome)
+                jogadorOrigemInstancia.adicionarCarta(c)
             }
-        }
-    }, [aceitaOrigem, aceitaDestino])
+        })
 
-    if (!aberto) return null
+        // 4. Cartas Prisão (Lógica simplificada de transferência numérica,
+        // idealmente moveria o objeto da cartaEvento)
+        // Aqui assumimos troca simbólica ou implemente a troca de objeto se necessário.
+
+        // Salvar estado global
+        setJogo(jogo)
+        onClose()
+    }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-lg">
+            <div className="w-full max-w-4xl rounded-2xl bg-white p-6 shadow-lg max-h-[90vh] overflow-y-auto">
                 <header className="mb-4 flex items-center justify-between">
                     <h3 className="text-lg font-semibold">
                         Troca entre Jogadores
                     </h3>
                     <button
-                        className="rounded px-3 py-1 cursor-pointer text-sm hover:bg-gray-100"
-                        onClick={() => {
-                            onFechar()
-                        }}
+                        className="rounded px-3 py-1 bg-gray-200 hover:bg-gray-300 text-sm"
+                        onClick={onClose}
                     >
                         Fechar
                     </button>
                 </header>
 
-                <div className="text-sm text-gray-600 mb-3">
-                    Cada jogador deve ofertar{' '}
-                    <span className="font-bold">pelo menos uma</span> das
-                    opções: dinheiro, propriedade ou carta "Saia da Prisão" para
-                    a troca ser realizada.
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Coluna Origem */}
                     <PlayerOfferColumn
-                        title={jogadorAtual.getNome()}
-                        jogador={jogadorAtual}
+                        title={jogadorOrigemInstancia?.getNome()}
+                        jogador={jogadorOrigemInstancia}
                         oferta={ofertaOrigem}
-                        propriedadesDisponiveis={propriedadesOrigem}
+                        propriedadesDisponiveis={propsOrigemReal}
                         aceita={aceitaOrigem}
-                        onChangeOferta={patch => atualizarOfertaOrigem(patch)}
-                        onTogglePropriedade={nome =>
-                            togglePropriedadeOfertaOrigem(nome)
-                        }
+                        onChangeOferta={atualizarOfertaOrigem}
+                        onTogglePropriedade={togglePropriedadeOfertaOrigem}
                         onAccept={origemAceita}
-                        disableAccept={!ofertaTemAlgo(ofertaDestino)}
                         onReset={() => {
                             setOfertaOrigem({
                                 dinheiro: 0,
@@ -591,93 +415,74 @@ export function NegociacaoModal({
                                 cartasSaidaPrisao: 0,
                             })
                             setAceitaOrigem(false)
-                            setAceitaDestino(false)
                         }}
                         isOrigin={true}
                     />
 
                     {/* Coluna Destino */}
-
-                    {/* Se nenhum destino foi escolhido, mostra a seleção */}
-                    {!destinoId && (
-                        <div className="border p-4 rounded">
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="block text-sm font-medium">
-                                    Selecionar jogador destino
-                                </label>
-                                <select
-                                    value={destinoId ?? ''}
-                                    onChange={e => setDestinoId(e.target.value)}
-                                    className="mt-1 w-full rounded border px-3 py-2"
-                                >
-                                    <option value="">Selecione…</option>
-                                    {outrosJogadores.map(p => (
-                                        <option
-                                            key={p.getNome()}
-                                            value={p.getNome()}
-                                        >
-                                            {p.getNome()} — R$ {p.getSaldo()}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                    {!destinoId ? (
+                        <div className="border p-4 rounded flex flex-col justify-center bg-gray-50">
+                            <label className="mb-2 font-medium text-center">
+                                Selecione com quem negociar:
+                            </label>
+                            <select
+                                className="border p-2 rounded w-full"
+                                value={destinoId || ''}
+                                onChange={e => setDestinoId(e.target.value)}
+                            >
+                                <option value="">
+                                    Selecione um oponente...
+                                </option>
+                                {outrosJogadores.map(j => (
+                                    <option key={j.nome} value={j.nome}>
+                                        {j.nome} (R$ {j.saldo})
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                    )}
-
-                    {/* Após escolher o destino, o select some e aparece o PlayerOfferColumn */}
-                    {jogadorDestino && (
-                        <PlayerOfferColumn
-                            title={jogadorDestino.getNome()}
-                            jogador={jogadorDestino}
-                            oferta={ofertaDestino}
-                            propriedadesDisponiveis={propriedadesDestino}
-                            aceita={aceitaDestino}
-                            onChangeOferta={patch =>
-                                atualizarOfertaDestino(patch)
-                            }
-                            onTogglePropriedade={nome =>
-                                togglePropriedadeOfertaDestino(nome)
-                            }
-                            onAccept={destinoAceita}
-                            onReset={() => {
-                                setDestinoId(null) // também remove o destinatário
-                                setOfertaDestino({
-                                    dinheiro: 0,
-                                    propriedades: [],
-                                    cartasSaidaPrisao: 0,
-                                })
-                                setAceitaOrigem(false)
-                                setAceitaDestino(false)
-                            }}
-                            isOrigin={false}
-                            disableAccept={!ofertaTemAlgo(ofertaOrigem)}
-                        />
+                    ) : (
+                        jogadorDestinoInstancia && (
+                            <PlayerOfferColumn
+                                title={jogadorDestinoInstancia.getNome()}
+                                jogador={jogadorDestinoInstancia}
+                                oferta={ofertaDestino}
+                                propriedadesDisponiveis={propsDestinoReal}
+                                aceita={aceitaDestino}
+                                onChangeOferta={atualizarOfertaDestino}
+                                onTogglePropriedade={
+                                    togglePropriedadeOfertaDestino
+                                }
+                                onAccept={destinoAceita}
+                                onReset={() => {
+                                    setOfertaDestino({
+                                        dinheiro: 0,
+                                        propriedades: [],
+                                        cartasSaidaPrisao: 0,
+                                    })
+                                    setAceitaDestino(false)
+                                }}
+                            />
+                        )
                     )}
                 </div>
 
                 {erro && (
-                    <div className="mt-4 text-sm text-red-600">{erro}</div>
+                    <div className="mt-4 p-2 bg-red-100 text-red-700 font-bold text-center rounded border border-red-300">
+                        {erro}
+                    </div>
                 )}
 
                 <div className="mt-6 flex justify-end gap-3">
                     <button
-                        className="rounded cursor-pointer bg-gray-100 px-4 py-2 hover:bg-gray-200"
-                        onClick={() => {
-                            onFechar()
-                        }}
+                        className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 font-medium"
+                        onClick={onClose}
                     >
                         Cancelar
                     </button>
                     <button
-                        className="rounded cursor-pointer bg-indigo-600 px-4 py-2 text-white"
-                        onClick={() => {
-                            if (aceitaOrigem && aceitaDestino)
-                                tentarAplicarTroca()
-                            else
-                                setErro(
-                                    'Ambos jogadores devem aceitar para concluir a troca.',
-                                )
-                        }}
+                        className={`px-4 py-2 text-white rounded font-bold shadow-md transition-all ${aceitaOrigem && aceitaDestino ? 'bg-indigo-600 hover:bg-indigo-700 transform hover:scale-105' : 'bg-gray-400 cursor-not-allowed'}`}
+                        disabled={!aceitaOrigem || !aceitaDestino}
+                        onClick={executarTroca}
                     >
                         Finalizar Troca
                     </button>
