@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 
 export default function Partida() {
     const jogo = useJogoStore(state => state.jogo)
+    const setJogo = useJogoStore(state => state.setJogo)
 
     const router = useRouter()
 
@@ -21,6 +22,19 @@ export default function Partida() {
 
     if (!jogo) {
         return null
+    }
+
+    const usarCartaPrisao = () => {
+        if (!jogo) return
+
+        try {
+            const sucesso = jogo.tentarSairDaPrisaoComCarta()
+            if (sucesso) {
+                setJogo(jogo)
+            }
+        } catch (error: any) {
+            alert(error.message)
+        }
     }
 
     const estadoJogo = jogo.toObject()
@@ -114,6 +128,23 @@ export default function Partida() {
                                                                     'pt-BR',
                                                                 )}
                                                             </span>
+                                                            {/* === botao sair da prisão === */}
+                                                            {eJogadorDaVez &&
+                                                                jogador.estaPreso &&
+                                                                jogador.temCartaSaidaPrisao && (
+                                                                    <Button
+                                                                        onClick={
+                                                                            usarCartaPrisao
+                                                                        }
+                                                                        className="bg-green-600 hover:bg-green-700 text-white mt-2 text-sm py-1 px-3"
+                                                                        size="sm"
+                                                                    >
+                                                                        🎫 Usar
+                                                                        Carta
+                                                                        "Sair da
+                                                                        Prisão"
+                                                                    </Button>
+                                                                )}
                                                         </div>
                                                     </div>
                                                     <div

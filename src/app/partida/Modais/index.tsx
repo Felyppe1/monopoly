@@ -11,61 +11,71 @@ export function Modais() {
     const [comprarEspaco, setComprarEspaco] = useState<CartaOutputUnion | null>(
         null,
     )
+    const [cartaEvento, setCartaEvento] = useState<CartaEventoOutput | null>(
+        null,
+    )
 
-    const [comprarCartaSorteBau, setComprarCartaSorteBau] =
-        useState<CartaEventoOutput | null>(null)
-
-    const jogo = useJogoStore(state => state.jogo!)
+    const jogo = useJogoStore(state => state.jogo)
+    const setJogo = useJogoStore(state => state.setJogo)
 
     useEffect(() => {
+        if (!jogo) return
+
         const estadoJogo = jogo.toObject()
         const jogadorAtual = estadoJogo.jogadores[estadoJogo.indiceJogadorAtual]
+        const espacoAtual = estadoJogo.espacosTabuleiro[jogadorAtual.posicao]
 
-        for (const jogador of estadoJogo.jogadores) {
-            if (jogador.personagem === jogadorAtual.personagem) {
-                const espacoTabuleiro =
-                    estadoJogo.espacosTabuleiro[jogador.posicao]
-                // estadoJogo.espacosTabuleiro[7]
+        const cartaEstaNoBanco = estadoJogo.banco.cartas.find(
+            carta => carta.nome === espacoAtual.nome,
+        )
 
-                const cartaEstaNoBanco = estadoJogo.banco.cartas.find(
-                    carta => carta.nome === espacoTabuleiro.nome,
-                )
-
-                if (cartaEstaNoBanco) {
-                    setComprarEspaco(cartaEstaNoBanco)
-                }
-
-                if (espacoTabuleiro.tipo === TIPO_ESPACO_ENUM.COFRE) {
-                    setComprarCartaSorteBau(
-                        estadoJogo.baralho.cartasCofre.pop()!,
-                    )
-                }
-
-                if (espacoTabuleiro.tipo === TIPO_ESPACO_ENUM.SORTE) {
-                    setComprarCartaSorteBau(
-                        estadoJogo.baralho.cartasSorte.pop()!,
-                    )
-                }
-                break
-            }
+        if (cartaEstaNoBanco) {
+            setComprarEspaco(cartaEstaNoBanco)
+            return
         }
-    }, [jogo])
 
-    if (comprarEspaco)
+        if (
+            espacoAtual.tipo === TIPO_ESPACO_ENUM.COFRE ||
+            espacoAtual.tipo === TIPO_ESPACO_ENUM.SORTE
+        ) {
+            const carta =
+                espacoAtual.tipo === TIPO_ESPACO_ENUM.COFRE
+                    ? estadoJogo.baralho.cartasCofre.pop()!
+                    : estadoJogo.baralho.cartasSorte.pop()!
+
+            setCartaEvento(carta)
+        }
+    }, [jogo, setJogo])
+
+    const handleFecharCartaEvento = () => {
+        if (jogo) {
+            jogo.processarCartaEvento()
+            setJogo(jogo)
+        }
+        setCartaEvento(null)
+    }
+
+    const handleFecharCompraEspaco = () => {
+        setComprarEspaco(null)
+    }
+
+    if (comprarEspaco) {
         return (
             <ComprarEspaco
                 carta={comprarEspaco}
-                onClose={() => setComprarEspaco(null)}
+                onClose={handleFecharCompraEspaco}
             />
         )
+    }
 
-    if (comprarCartaSorteBau)
+    if (cartaEvento) {
         return (
             <ModalCartaSorteBau
-                carta={comprarCartaSorteBau}
-                onClose={() => setComprarCartaSorteBau(null)}
+                carta={cartaEvento}
+                onClose={handleFecharCartaEvento}
             />
         )
+    }
 
     return <Default />
 }

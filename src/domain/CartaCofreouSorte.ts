@@ -199,6 +199,7 @@ export class CartaEvento {
         multiplicadorAluguel?: number
         avancarPara?: 'estacao' | 'companhia'
         acao?: ACAO_CARTA
+        deveGuardarCarta?: boolean
     } {
         const baseRetorno = { acao: this.acao, valor: 0 }
         switch (this.acao) {
@@ -229,7 +230,7 @@ export class CartaEvento {
             case ACAO_CARTA.AVANCAR_PROPRIEDADE:
                 return {
                     ...baseRetorno,
-                    valor: 200, // Valor base se passar pelo início (sobrescrito se não passar)
+                    valor: 0,
                     destino: this.destino!,
                     tipoMovimento: 'avancar',
                 }
@@ -237,7 +238,7 @@ export class CartaEvento {
             case ACAO_CARTA.AVANCAR_ESTACAO:
                 return {
                     ...baseRetorno,
-                    valor: 200,
+                    valor: 0,
                     destino: this.destino,
                     tipoMovimento: 'avancar',
                     avancarPara: 'estacao',
@@ -247,7 +248,7 @@ export class CartaEvento {
             case ACAO_CARTA.AVANCAR_ESTACAO_ESPECIFICA:
                 return {
                     ...baseRetorno,
-                    valor: 200,
+                    valor: 0,
                     destino: this.destino!,
                     tipoMovimento: 'avancar',
                     avancarPara: 'estacao',
@@ -281,7 +282,24 @@ export class CartaEvento {
                 }
 
             case ACAO_CARTA.SAIR_DA_PRISAO:
-                return { ...baseRetorno, cartaPrisao: true }
+                if (jogador.temCartaSaidaPrisao()) {
+                    console.log(
+                        `${jogador.getNome()} já tem uma carta de "Sair da Prisão"`,
+                    )
+                    return {
+                        ...baseRetorno,
+                        deveGuardarCarta: false,
+                    }
+                } else {
+                    console.log(
+                        `${jogador.getNome()} guardou a carta de "Sair da Prisão"`,
+                    )
+                    return {
+                        ...baseRetorno,
+                        cartaPrisao: true,
+                        deveGuardarCarta: true,
+                    }
+                }
 
             case ACAO_CARTA.AVANCAR_INICIO:
                 return {

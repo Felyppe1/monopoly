@@ -67,4 +67,16 @@ export class Baralho {
             cartasSorte: this.cartasSorte.map(carta => carta.toObject()),
         }
     }
+
+    public getUltimaCartaCofre(): CartaEvento | null {
+        return this.cartasCofre.length > 0
+            ? this.cartasCofre[this.cartasCofre.length - 1]
+            : null
+    }
+
+    public getUltimaCartaSorte(): CartaEvento | null {
+        return this.cartasSorte.length > 0
+            ? this.cartasSorte[this.cartasSorte.length - 1]
+            : null
+    }
 }

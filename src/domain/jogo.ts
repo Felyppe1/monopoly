@@ -69,6 +69,7 @@ export class Jogo {
     private banco: Banco
     private jogouOsDados: boolean
     private baralho: Baralho
+    private cartaEventoAtual: CartaEvento | null = null
 
     static criar(jogadores: CriarJogadorInput[]) {
         const banco = Banco.criar()
@@ -246,8 +247,6 @@ export class Jogo {
             jogadorAtual.tentarSairDaPrisao(dado1, dado2)
         } else {
             jogadorAtual.mover(dado1 + dado2)
-
-            const cartaComprada = this.eventoSorteCofre(jogadorAtual)
 
             const espacoAtual = this.espacosTabuleiro[jogadorAtual.getPosicao()]
 
@@ -560,22 +559,46 @@ export class Jogo {
         }
     }
 
-    private eventoSorteCofre(jogador: Jogador): CartaEvento | null {
-        const posicaoAtual = jogador.getPosicao()
-        const espacoAtual = this.espacosTabuleiro[posicaoAtual]
+    public getCartaEventoAtual(): CartaEvento | null {
+        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
+        const posicao = jogadorAtual.getPosicao()
+        const espacoAtual = this.espacosTabuleiro[posicao]
+
+        if (
+            espacoAtual.getTipo() === TIPO_ESPACO_ENUM.COFRE ||
+            espacoAtual.getTipo() === TIPO_ESPACO_ENUM.SORTE
+        ) {
+            return this.eventoSorteCofre(jogadorAtual)
+        }
+
+        return null
+    }
+
+    public processarCartaEvento(): void {
+        this.virarTurno()
+    }
+
+    public eventoSorteCofre(): CartaEvento | null {
+        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
+
+        const espacoAtual = this.espacosTabuleiro[jogadorAtual.getPosicao()]
 
         switch (espacoAtual.getTipo()) {
             case TIPO_ESPACO_ENUM.COFRE:
                 const cartaCofre = this.baralho.comprarCartaCofre()
                 if (cartaCofre) {
-                    const resultado = cartaCofre.executarAcao(jogador, this)
-                    this.aplicarEfeitoCarta(jogador, resultado, cartaCofre)
+                    const resultado = cartaCofre.executarAcao(
+                        jogadorAtual,
+                        this,
+                    )
+                    this.aplicarEfeitoCarta(jogadorAtual, resultado, cartaCofre)
                     if (!resultado.cartaPrisao) {
                         this.baralho.devolverCartaCofre(cartaCofre)
                     }
                     console.log(
-                        `${jogador.getNome()} caiu em cofre. carta: ${cartaCofre.getDescricao()}`,
+                        `${jogadorAtual.getNome()} caiu em cofre. carta: ${cartaCofre.getDescricao()}`,
                     )
+
                     return cartaCofre
                 }
                 break
@@ -583,13 +606,16 @@ export class Jogo {
             case TIPO_ESPACO_ENUM.SORTE:
                 const cartaSorte = this.baralho.comprarCartaSorte()
                 if (cartaSorte) {
-                    const resultado = cartaSorte.executarAcao(jogador, this)
-                    this.aplicarEfeitoCarta(jogador, resultado, cartaSorte)
+                    const resultado = cartaSorte.executarAcao(
+                        jogadorAtual,
+                        this,
+                    )
+                    this.aplicarEfeitoCarta(jogadorAtual, resultado, cartaSorte)
                     if (!resultado.cartaPrisao) {
-                        this.baralho.devolverCartaCofre(cartaSorte)
+                        this.baralho.devolverCartaSorte(cartaSorte)
                     }
                     console.log(
-                        `${jogador.getNome()} caiu em sorte. carta: ${cartaSorte.getDescricao()}`,
+                        `${jogadorAtual.getNome()} caiu em sorte. carta: ${cartaSorte.getDescricao()}`,
                     )
                     return cartaSorte
                 }
@@ -600,6 +626,48 @@ export class Jogo {
         }
 
         return null
+    }
+
+    public jogadorUsaCartaSaidaPrisao(): boolean {
+        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
+
+        if (!jogadorAtual.getEstaPreso()) {
+            throw new Error(
+                'Jogador não está preso para usar a carta de "Sair da Prisão"',
+            )
+        }
+
+        if (!jogadorAtual.temCartaSaidaPrisao()) {
+            throw new Error('Jogador não possui carta de "Sair da Prisão"')
+        }
+
+        const carta = jogadorAtual.usarCartaSaidaPrisao()
+
+        if (carta) {
+            console.log(
+                `${jogadorAtual.getNome()} usou a carta e saiu da prisão!`,
+            )
+
+            // Devolve a carta ao baralho apropriado
+            if (carta.getTipo() === TIPO_CARTA.SORTE) {
+                this.baralho.devolverCartaSorte(carta)
+            } else {
+                this.baralho.devolverCartaCofre(carta)
+            }
+
+            return true
+        }
+
+        return false
+    }
+
+    public tentarSairDaPrisaoComCarta(): boolean {
+        try {
+            return this.jogadorUsaCartaSaidaPrisao()
+        } catch (error) {
+            console.warn(error.message)
+            return false
+        }
     }
 
     private encontrarPosicaoPorNome(nome: string): number {
@@ -648,10 +716,19 @@ export class Jogo {
         }
 
         if (resultado.cartaPrisao) {
-            jogador.adicionarCartaSaidaPrisao(cartaOriginal)
-            console.log(
-                `${jogador.getNome()} guardou a carta 'Saia da Prisão'!`,
-            )
+            if (resultado.deveGuardarCarta) {
+                jogador.adicionarCartaSaidaPrisao(cartaOriginal)
+                console.log(
+                    `${jogador.getNome()} guardou a carta 'Saia da Prisão'!`,
+                )
+            } else {
+                if (resultado.valor > 0) {
+                    console.log(
+                        `${jogador.getNome()} já tem carta de sair da prisão`,
+                    )
+                }
+            }
+            return
         }
 
         if (resultado.destino) {
@@ -671,7 +748,7 @@ export class Jogo {
                 jogador.mover(passos)
             } else {
                 console.warn(
-                    `⚠️ Destino "${resultado.destino}" não encontrado no tabuleiro!`,
+                    `Destino "${resultado.destino}" não encontrado no tabuleiro!`,
                 )
             }
         } else if (resultado.voltarCasas) {
@@ -706,7 +783,7 @@ export class Jogo {
         }
     }
 
-    jogadorUsaCartaSaidaPrisao() {
+    /* jogadorUsaCartaSaidaPrisao() {
         const jogador = this.jogadores[this.indiceJogadorAtual]
 
         if (!jogador.getEstaPreso()) {
@@ -729,7 +806,7 @@ export class Jogo {
                 this.baralho.devolverCartaCofre(carta)
             }
         }
-    }
+    } */
 
     // TODO: se tiver mais lugares que precisam da informação dos dados, salvar na classe Jogo
     cobrarAluguel(dados?: { dado1: number; dado2: number }) {

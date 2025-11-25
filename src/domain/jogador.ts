@@ -34,6 +34,7 @@ export interface JogadorInput {
 
 export interface JogadorOutput extends Omit<JogadorInput, 'cartas'> {
     cartas: CartaOutputUnion[]
+    temCartaSaidaPrisao: boolean
 }
 
 export interface CriarJogadorInput {
@@ -52,6 +53,7 @@ export class Jogador {
     private turnosNaPrisao: number
     private tentativasDuplo: number
     private cartasSaidaPrisao: CartaEvento[] = []
+    private cartaSaidaPrisao: CartaEvento | null = null
 
     static create({ nome, personagem }: CriarJogadorInput) {
         const SALDO_INICIAL = 1500
@@ -131,16 +133,33 @@ export class Jogador {
         this.tentativasDuplo = 0
     }
 
-    adicionarCartaSaidaPrisao(carta: CartaEvento) {
-        this.cartasSaidaPrisao.push(carta)
+    public adicionarCartaSaidaPrisao(carta: CartaEvento): void {
+        if (carta.getAcao() !== ACAO_CARTA.SAIR_DA_PRISAO) {
+            throw new Error('Esta não é uma carta de "Sair da Prisão"')
+        }
+        this.cartaSaidaPrisao = carta
+        console.log(`${this.nome} guardou uma carta de "Sair da Prisão"`)
     }
 
-    temCartaSaidaPrisao(): boolean {
-        return this.cartasSaidaPrisao.length > 0
+    public temCartaSaidaPrisao(): boolean {
+        return this.cartaSaidaPrisao !== null
     }
 
-    usarCartaSaidaPrisao(): CartaEvento | null {
-        return this.cartasSaidaPrisao.pop() || null
+    public usarCartaSaidaPrisao(): CartaEvento | null {
+        if (!this.cartaSaidaPrisao) {
+            return null
+        }
+
+        const carta = this.cartaSaidaPrisao
+        this.cartaSaidaPrisao = null
+        this.sairDaPrisao()
+
+        console.log(`${this.nome} usou a carta de "Sair da Prisão"`)
+        return carta
+    }
+
+    public getCartaSaidaPrisao(): CartaEvento | null {
+        return this.cartaSaidaPrisao
     }
 
     getEstaPreso() {
@@ -272,6 +291,7 @@ export class Jogador {
             estaPreso: this.estaPreso,
             turnosNaPrisao: this.turnosNaPrisao,
             tentativasDuplo: this.tentativasDuplo,
+            temCartaSaidaPrisao: this.temCartaSaidaPrisao(),
         }
     }
 }
