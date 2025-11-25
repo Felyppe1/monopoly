@@ -25,8 +25,8 @@ export const CartaCompanhiaView = ({
                 <img
                     src={
                         companhia.nome === 'Companhia Elétrica'
-                            ? 'companhia-eletrica.png'
-                            : 'companhia-saneamento.png'
+                            ? './companhia-eletrica.png'
+                            : './companhia-saneamento.png'
                     }
                     className="w-16 pb-4"
                 />

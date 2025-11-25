@@ -137,7 +137,7 @@ export default function Home() {
                 backgroundRepeat: 'no-repeat',
             }}
         >
-            <img src="/logo.png" alt="" className="w-[30rem] mb-16" />
+            <img src="./logo.png" alt="" className="w-[30rem] mb-16" />
 
             {/* Background da cidade */}
             <div className="flex flex-col gap-12 w-full max-w-[70%] relative z-10">
@@ -206,7 +206,7 @@ export default function Home() {
                                         }}
                                     >
                                         <img
-                                            src={`/personagem-${jogador.personagem}.png`}
+                                            src={`./personagem-${jogador.personagem}.png`}
                                             alt={jogador.personagem}
                                             className="w-16 h-16"
                                         />
