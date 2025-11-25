@@ -5,12 +5,14 @@ import { Tabuleiro } from './Tabuleiro'
 import { MapPin } from 'lucide-react'
 import { useJogoStore } from '@/store/useJogoStore'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 export default function Partida() {
     const jogo = useJogoStore(state => state.jogo)
+    const setJogo = useJogoStore(state => state.setJogo)
 
     const router = useRouter()
+    const turnoEmAndamento = useRef(false) // TRAVA
 
     useEffect(() => {
         if (!jogo) {
@@ -21,6 +23,68 @@ export default function Partida() {
     if (!jogo) {
         return null
     }
+
+    // --- ORQUESTRAÇÃO DO BOT ---
+    useEffect(() => {
+        if (!jogo) return
+
+        const estado = jogo.toObject()
+        const jogadorAtual = estado.jogadores[estado.indiceJogadorAtual]
+
+        if (jogadorAtual.ehBot && estado.estado === 'EM_ANDAMENTO') {
+            
+            if (turnoEmAndamento.current) return 
+
+            const executarTurnoBot = async () => {
+                try {
+                    turnoEmAndamento.current = true
+
+                    if (jogadorAtual.estaPreso) {
+                        const usouCarta = jogo.botTentarSairDaPrisao()
+                        if (usouCarta) {
+                            setJogo(jogo)
+                            await new Promise(r => setTimeout(r, 1000))
+                        }
+                    }
+                    
+                    const objJogo = jogo.toObject()
+                    const jaJogou = objJogo.jogouOsDados
+                    const temDuplaPendente = objJogo.quantidadeDuplas > 0
+                    const estaLivre = !objJogo.jogadores[objJogo.indiceJogadorAtual].estaPreso
+
+
+                    if (!jaJogou || (temDuplaPendente && estaLivre)) {           
+                        await new Promise(r => setTimeout(r, 3500))
+                        await new Promise(r => setTimeout(r, 2000))
+                    }
+
+                    const jogoPosMovimento = jogo.toObject() 
+                    const posAtual = jogoPosMovimento.jogadores[jogoPosMovimento.indiceJogadorAtual].posicao
+                    
+                    if (posAtual !== 10 && posAtual !== 30) {
+                        jogo.botRealizarConstrucoes()
+                        setJogo(jogo)
+                        await new Promise(r => setTimeout(r, 1000))
+                    }
+
+                    const estadoFinal = jogo.toObject()
+                    const botFoiPreso = estadoFinal.jogadores[estadoFinal.indiceJogadorAtual].estaPreso
+
+                    if (estadoFinal.quantidadeDuplas === 0 || botFoiPreso) {
+                         jogo.virarTurno()
+                         setJogo(jogo)
+                    } 
+                    
+                } catch (error) {
+                    console.error("Erro no turno do bot:", error)
+                } finally {
+                    turnoEmAndamento.current = false
+                }
+            }
+
+            executarTurnoBot()
+        }
+    }, [jogo, setJogo])
 
     const estadoJogo = jogo.toObject()
 

@@ -30,6 +30,7 @@ export interface JogadorInput {
     estaPreso: boolean
     turnosNaPrisao: number
     tentativasDuplo: number
+    ehBot: boolean
 }
 
 export interface JogadorOutput extends Omit<JogadorInput, 'cartas'> {
@@ -40,6 +41,7 @@ export interface CriarJogadorInput {
     nome: string
     personagem: PERSONAGEM
     saldo?: number
+    ehBot?: boolean
 }
 
 export class Jogador {
@@ -52,8 +54,9 @@ export class Jogador {
     private turnosNaPrisao: number
     private tentativasDuplo: number
     private cartasSaidaPrisao: CartaEvento[] = []
+    private ehBot: boolean
 
-    static create({ nome, personagem }: CriarJogadorInput) {
+    static create({ nome, personagem, ehBot=false }: CriarJogadorInput) {
         const SALDO_INICIAL = 1500
         return new Jogador({
             nome,
@@ -64,6 +67,7 @@ export class Jogador {
             turnosNaPrisao: 0,
             tentativasDuplo: 0,
             saldo: SALDO_INICIAL,
+            ehBot: ehBot,
         })
     }
 
@@ -75,6 +79,7 @@ export class Jogador {
         estaPreso,
         turnosNaPrisao,
         tentativasDuplo,
+        ehBot,
     }: JogadorInput) {
         if (!nome) {
             throw new Error('Nome do jogador é obrigatório')
@@ -93,6 +98,7 @@ export class Jogador {
         }
 
         this.nome = nome
+        this.ehBot = ehBot
         this.personagem = personagem
         this.posicao = posicao
         this.cartas = cartas
@@ -161,6 +167,10 @@ export class Jogador {
 
     getTentativasDuplo() {
         return this.tentativasDuplo
+    }
+
+    getEhBot() {
+        return this.ehBot
     }
 
     mover(casas: number) {
@@ -295,6 +305,7 @@ export class Jogador {
             estaPreso: this.estaPreso,
             turnosNaPrisao: this.turnosNaPrisao,
             tentativasDuplo: this.tentativasDuplo,
+            ehBot: this.ehBot,
         }
     }
 }
