@@ -131,7 +131,7 @@ export default function Home() {
         <div
             className="min-h-screen flex flex-col items-center pt-4 pb-12 relative"
             style={{
-                backgroundImage: 'url(/imagem-fundo.png)',
+                backgroundImage: 'url(./imagem-fundo.png)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
