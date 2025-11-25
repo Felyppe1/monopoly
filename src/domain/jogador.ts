@@ -8,7 +8,7 @@ import {
     TituloDePosse,
 } from './Carta'
 import { NomeEspaco } from './dados/nome-espacos'
-import { CartaEvento } from './CartaCofreouSorte'
+import { CartaEvento, ACAO_CARTA } from './CartaCofreouSorte'
 
 export enum PERSONAGEM {
     CACHORRO = 'cachorro',
@@ -36,6 +36,7 @@ export interface JogadorInput {
 
 export interface JogadorOutput extends Omit<JogadorInput, 'cartas'> {
     cartas: CartaOutputUnion[]
+    temCartaSaidaPrisao: boolean
 }
 
 export interface CriarJogadorInput {
@@ -54,6 +55,7 @@ export class Jogador {
     private estaPreso: boolean
     private turnosNaPrisao: number
     private tentativasDuplo: number
+    // Mantendo como array para suportar múltiplas cartas caso necessário
     private cartasSaidaPrisao: CartaEvento[] = []
     private ehBot: boolean
     private falido: boolean
@@ -147,11 +149,32 @@ export class Jogador {
         this.tentativasDuplo = 0
     }
 
-    adicionarCartaSaidaPrisao(carta: CartaEvento) {
+    public adicionarCartaSaidaPrisao(carta: CartaEvento): void {
+        if (carta.getAcao() !== ACAO_CARTA.SAIR_DA_PRISAO) {
+            throw new Error('Esta não é uma carta de "Sair da Prisão"')
+        }
         this.cartasSaidaPrisao.push(carta)
+        console.log(`${this.nome} guardou uma carta de "Sair da Prisão"`)
     }
 
-    getCartaSaidaPrisao(): CartaEvento[] {
+    public temCartaSaidaPrisao(): boolean {
+        return this.cartasSaidaPrisao.length > 0
+    }
+
+    public usarCartaSaidaPrisao(): CartaEvento | null {
+        if (!this.temCartaSaidaPrisao()) {
+            return null
+        }
+
+        const carta = this.cartasSaidaPrisao.pop() || null
+        if (carta) {
+            this.sairDaPrisao()
+            console.log(`${this.nome} usou a carta de "Sair da Prisão"`)
+        }
+        return carta
+    }
+
+    public getCartasSaidaPrisao(): CartaEvento[] {
         return this.cartasSaidaPrisao
     }
 
@@ -159,12 +182,6 @@ export class Jogador {
         return this.cartas
     }
 
-    temCartaSaidaPrisao(): boolean {
-        return this.cartasSaidaPrisao.length > 0
-    }
-    usarCartaSaidaPrisao(): CartaEvento | null {
-        return this.cartasSaidaPrisao.pop() || null
-    }
     getEstaPreso() {
         return this.estaPreso
     }
@@ -282,6 +299,7 @@ export class Jogador {
             estaPreso: this.estaPreso,
             turnosNaPrisao: this.turnosNaPrisao,
             tentativasDuplo: this.tentativasDuplo,
+            temCartaSaidaPrisao: this.temCartaSaidaPrisao(),
             ehBot: this.ehBot,
             falido: this.falido,
         }

@@ -45,7 +45,7 @@ function PlayerOfferColumn({
         (o.cartasSaidaPrisao ?? 0) > 0
 
     // Nota: Acessando diretamente do objeto jogador (instância)
-    const possuiCartasSaida = jogador.getCartaSaidaPrisao?.()?.length ?? 0
+    const possuiCartasSaida = jogador.getCartasSaidaPrisao?.()?.length ?? 0
 
     return (
         <div className="border p-4 rounded">

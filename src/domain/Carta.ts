@@ -90,6 +90,9 @@ export class TituloDePosse extends Carta {
         this.valorAluguel = valorAluguel
         this.precoCasa = precoCasa
         this.precoHotel = precoHotel
+
+        this.numeroCasas = 0
+        this.numeroHoteis = 0
     }
 
     getCor(): COR_ENUM {
@@ -101,10 +104,10 @@ export class TituloDePosse extends Carta {
     }
 
     getNumCasas(): number {
-        return this.numeroCasas
+        return this.numeroCasas || 0
     }
     getNumHoteis(): number {
-        return this.numeroHoteis
+        return this.numeroHoteis || 0
     }
 
     adicionarCasa() {

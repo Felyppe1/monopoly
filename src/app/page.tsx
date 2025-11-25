@@ -87,7 +87,15 @@ export default function Home() {
     const toggleBot = (id: number) => {
         setJogadores(
             jogadores.map(jogador =>
-                jogador.id === id ? { ...jogador, ehBot: !jogador.ehBot, nome: !jogador.ehBot ? `Bot ${jogador.personagem}` : '' } : jogador,
+                jogador.id === id
+                    ? {
+                          ...jogador,
+                          ehBot: !jogador.ehBot,
+                          nome: !jogador.ehBot
+                              ? `Bot ${jogador.personagem}`
+                              : '',
+                      }
+                    : jogador,
             ),
         )
     }
@@ -104,7 +112,8 @@ export default function Home() {
     }
 
     const podeJogar =
-        jogadores.length >= 2 && jogadores.every(j => j.ehBot || j.nome.trim() !== '')
+        jogadores.length >= 2 &&
+        jogadores.every(j => j.ehBot || j.nome.trim() !== '')
 
     const iniciarJogo = () => {
         try {
@@ -227,7 +236,10 @@ export default function Home() {
                                         onChange={() => toggleBot(jogador.id)}
                                         className="w-4 h-4"
                                     />
-                                    <label htmlFor={`bot-${jogador.id}`} className="text-xs text-white font-bold cursor-pointer select-none">
+                                    <label
+                                        htmlFor={`bot-${jogador.id}`}
+                                        className="text-xs text-white font-bold cursor-pointer select-none"
+                                    >
                                         BOT
                                     </label>
                                 </div>
