@@ -1,11 +1,11 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabuleiro } from './Tabuleiro'
 import { Crown, Hotel, House, MapPin } from 'lucide-react'
 import { useJogoStore } from '@/store/useJogoStore'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 
 export default function Partida() {
@@ -13,6 +13,7 @@ export default function Partida() {
     const setJogo = useJogoStore(state => state.setJogo)
 
     const router = useRouter()
+    const turnoEmAndamento = useRef(false)
 
     useEffect(() => {
         if (!jogo) {
@@ -37,6 +38,112 @@ export default function Partida() {
         }
     }
 
+    // --- ORQUESTRAÇÃO DO BOT ---
+    useEffect(() => {
+        if (!jogo) return
+
+        const estado = jogo.toObject()
+        const jogadorAtual = estado.jogadores[estado.indiceJogadorAtual]
+
+        // Verifica se é a vez do Bot, se o jogo roda e se ele AINDA NÃO jogou os dados neste turno
+        if (
+            jogadorAtual.ehBot &&
+            estado.estado === 'EM_ANDAMENTO' &&
+            !estado.jogouOsDados
+        ) {
+            if (turnoEmAndamento.current) return
+
+            const executarTurnoBot = async () => {
+                try {
+                    turnoEmAndamento.current = true
+
+                    // 1. Tentar sair da prisão (Cartas ou Pagar)
+                    if (jogadorAtual.estaPreso) {
+                        await new Promise(r => setTimeout(r, 1000))
+                        let conseguiuSair = jogo.botTentarSairDaPrisao()
+
+                        if (!conseguiuSair) {
+                            conseguiuSair =
+                                jogo.botTentarPagarParaSairDaPrisao()
+                        }
+
+                        if (conseguiuSair) {
+                            setJogo(jogo)
+                            await new Promise(r => setTimeout(r, 1000))
+                        }
+                    }
+
+                    // 2. Loop de Jogada (Dados + Construção)
+                    let podeJogarNovamente = true
+
+                    while (podeJogarNovamente) {
+                        if (!jogo) break // Proteção
+
+                        const estadoAtualLoop = jogo.toObject()
+                        // Se estiver preso e não conseguiu sair, não pode jogar dados normais
+                        if (
+                            estadoAtualLoop.jogadores[
+                                estadoAtualLoop.indiceJogadorAtual
+                            ].estaPreso
+                        ) {
+                            podeJogarNovamente = false
+                            break
+                        }
+
+                        await new Promise(r => setTimeout(r, 1500))
+
+                        jogo.jogarDados()
+                        setJogo(jogo)
+
+                        // Tempo para ver o resultado dos dados e o movimento
+                        await new Promise(r => setTimeout(r, 4000))
+
+                        // 3. Realizar Construções
+                        const estadoPosMovimento = jogo.toObject()
+                        const idx = estadoPosMovimento.indiceJogadorAtual
+                        const jogadorPos = estadoPosMovimento.jogadores[idx]
+
+                        if (
+                            jogadorPos.posicao !== 10 &&
+                            jogadorPos.posicao !== 30 &&
+                            !jogadorPos.estaPreso
+                        ) {
+                            jogo.botRealizarConstrucoes()
+                            setJogo(jogo)
+                            await new Promise(r => setTimeout(r, 1000))
+                        }
+
+                        // 4. Decidir se repete o loop (Regra de Dupla)
+                        const estadoFinalLoop = jogo.toObject()
+                        const tirouDupla = estadoFinalLoop.quantidadeDuplas > 0
+                        const foiPreso =
+                            estadoFinalLoop.jogadores[
+                                estadoFinalLoop.indiceJogadorAtual
+                            ].estaPreso
+
+                        if (tirouDupla && !foiPreso) {
+                            podeJogarNovamente = true
+                            await new Promise(r => setTimeout(r, 1000))
+                        } else {
+                            podeJogarNovamente = false
+                        }
+                    }
+
+                    // 5. Virar o Turno
+                    await new Promise(r => setTimeout(r, 1000))
+                    jogo.virarTurno()
+                    setJogo(jogo)
+                } catch (error) {
+                    console.error('Erro no turno do bot:', error)
+                } finally {
+                    turnoEmAndamento.current = false
+                }
+            }
+
+            executarTurnoBot()
+        }
+    }, [jogo, setJogo])
+
     const estadoJogo = jogo.toObject()
 
     return (
@@ -58,7 +165,7 @@ export default function Partida() {
                                     estadoJogo.espacosTabuleiro.find(
                                         espaco =>
                                             espaco.posicao === jogador.posicao,
-                                    )!
+                                    )
 
                                 const eJogadorDaVez =
                                     index === estadoJogo.indiceJogadorAtual
@@ -87,20 +194,23 @@ export default function Partida() {
                                     }
                                 })
 
-                                // Verificar quais cores formam monopólio (assumindo 3 propriedades = monopólio)
+                                // Verificar quais cores formam monopólio (assumindo 3 propriedades = monopólio, ajustar conforme regra do jogo se for 2 para algumas cores)
                                 const coresMonopolio = Array.from(
                                     propriedadesPorCor.entries(),
                                 )
-                                    .filter(([_, props]) => props.length === 3)
+                                    .filter(([cor, props]) => {
+                                        // Lógica simples: se tem 3 ou mais da mesma cor (ajuste se roxo/marrom forem 2)
+                                        return props.length >= 2
+                                    })
                                     .map(([cor, _]) => cor)
 
                                 return (
-                                    <li key={index} className="">
-                                        <button className="flex w-full">
-                                            <div className="bg-white px-5 py-4 rounded-xl w-full shadow-lg hover:shadow-xl transition-shadow duration-200 border-2 border-teal-200">
-                                                <div className="flex justify-between">
+                                    <li key={jogador.nome}>
+                                        <button className="flex w-full text-left cursor-default">
+                                            <div className="bg-white px-5 py-4 rounded-xl w-full shadow-lg transition-shadow duration-200 border-2 border-teal-200">
+                                                <div className="flex justify-between mb-4">
                                                     <div className="flex gap-4 items-center">
-                                                        <div className="">
+                                                        <div>
                                                             <img
                                                                 src={`personagem-${jogador.personagem}.png`}
                                                                 alt=""
@@ -128,6 +238,7 @@ export default function Partida() {
                                                                     'pt-BR',
                                                                 )}
                                                             </span>
+
                                                             {/* === botao sair da prisão === */}
                                                             {eJogadorDaVez &&
                                                                 jogador.estaPreso &&
@@ -136,7 +247,7 @@ export default function Partida() {
                                                                         onClick={
                                                                             usarCartaPrisao
                                                                         }
-                                                                        className="bg-green-600 hover:bg-green-700 text-white mt-2 text-sm py-1 px-3"
+                                                                        className="bg-green-600 hover:bg-green-700 text-white mt-2 text-sm py-1 px-3 h-auto"
                                                                         size="sm"
                                                                     >
                                                                         🎫 Usar
@@ -161,13 +272,14 @@ export default function Partida() {
                                                                 ? 'PRISÃO (' +
                                                                   jogador.turnosNaPrisao +
                                                                   '/3)'
-                                                                : espacoTabuleiro.nome}
+                                                                : espacoTabuleiro?.nome ||
+                                                                  'Desconhecido'}
                                                         </span>
                                                     </div>
                                                 </div>
 
                                                 {jogador.cartas.length > 0 && (
-                                                    <div className="mt-4">
+                                                    <div className="mt-4 border-t pt-2">
                                                         <p className="text-start mb-2 font-bold text-gray-700 text-sm uppercase tracking-wide">
                                                             Propriedades
                                                         </p>
@@ -195,8 +307,7 @@ export default function Partida() {
                                                                             />
                                                                             Monopólio
                                                                         </p>
-
-                                                                        <div className="flex gap-2 justify-between">
+                                                                        <div className="flex gap-2 flex-wrap">
                                                                             {props.map(
                                                                                 prop => (
                                                                                     <CartaPropriedade
@@ -215,9 +326,10 @@ export default function Partida() {
                                                                                         aluguel={
                                                                                             prop
                                                                                                 .valorAluguel[0]
-                                                                                        }
+                                                                                        } // Idealmente pega o valor atual calculado
                                                                                         numeroCasas={
-                                                                                            3
+                                                                                            prop.numeroCasas ||
+                                                                                            0
                                                                                         }
                                                                                     />
                                                                                 ),
@@ -228,7 +340,7 @@ export default function Partida() {
                                                             },
                                                         )}
 
-                                                        {/* Renderizar propriedades sem monopólio agrupadas por cor */}
+                                                        {/* Renderizar propriedades sem monopólio */}
                                                         {Array.from(
                                                             propriedadesPorCor.entries(),
                                                         )
@@ -269,6 +381,7 @@ export default function Partida() {
                                                                                             .valorAluguel[0]
                                                                                     }
                                                                                     numeroCasas={
+                                                                                        prop.numeroCasas ||
                                                                                         0
                                                                                     }
                                                                                 />
@@ -328,65 +441,19 @@ export default function Partida() {
                                                     </div>
                                                 )}
                                             </div>
-                                            {/* <div className="bg-[#8FCBBB] w-[60%] px-4 py-1 rounded-r-md text-neutral-800">
-                                                <div
-                                                    className={`flex items-center gap-2 ${jogador.estaPreso && 'text-red-700'}`}
-                                                >
-                                                    <MapPin
-                                                        size={16}
-                                                        className={`${jogador.estaPreso ? 'fill-red-700' : 'fill-neutral-800'}`}
-                                                    />
-                                                    <span className="font-bold">
-                                                        {jogador.estaPreso
-                                                            ? 'NA PRISÃO (' +
-                                                            jogador.turnosNaPrisao +
-                                                            '/3)'
-                                                            : espacoTabuleiro.nome}
-                                                    </span>
-                                                </div>
-
-                                                <div className="flex flex-col items-start">
-                                                    <span className="font-bold text-md mb-0.5">
-                                                        Propriedades
-                                                    </span>
-                                                    <div className="flex gap-1 flex-wrap">
-                                                        {jogador.cartas.map(
-                                                            carta => {
-                                                                console.log(carta)
-                                                                const cor =
-                                                                    carta.tipo ===
-                                                                    'TituloDePosse'
-                                                                        ? carta.cor
-                                                                        : carta.tipo ===
-                                                                            'EstacaoDeMetro'
-                                                                        ? 'preto'
-                                                                        : 'cinza'
-
-                                                                console.log(cor)
-                                                                return (
-                                                                    <div
-                                                                        className={`w-3 h-4 border-2 border-${cor}`}
-                                                                    ></div>
-                                                                )
-                                                            },
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div> */}
                                         </button>
                                     </li>
                                 )
                             })}
                         </ul>
                     </div>
-                    <div className="flex">
-                        <Button>Trocar Cartas</Button>
-                    </div>
                 </div>
             </div>
         </div>
     )
 }
+
+// --- Componentes Auxiliares (Mantidos do seu código) ---
 
 interface CartaPropriedadeProps {
     cor: string
@@ -403,7 +470,6 @@ function CartaPropriedade({
     numeroCasas,
     monopolio,
 }: CartaPropriedadeProps) {
-    // Mapeamento de cores para códigos Tailwind mais vibrantes
     const corMap: { [key: string]: { border: string; bg: string } } = {
         marrom: { border: 'border-amber-800', bg: 'bg-amber-50' },
         'azul-claro': { border: 'border-sky-400', bg: 'bg-sky-50' },
@@ -412,7 +478,7 @@ function CartaPropriedade({
         vermelho: { border: 'border-red-600', bg: 'bg-red-50' },
         amarelo: { border: 'border-yellow-400', bg: 'bg-yellow-50' },
         verde: { border: 'border-green-600', bg: 'bg-green-50' },
-        azul: { border: 'border-azul', bg: 'bg-blue-50' },
+        azul: { border: 'border-blue-600', bg: 'bg-blue-50' },
         roxo: { border: 'border-purple-600', bg: 'bg-purple-50' },
     }
 
@@ -423,10 +489,13 @@ function CartaPropriedade({
 
     return (
         <div
-            className={`flex justify-between items-center py-2 px-3 ${corEstilo.bg} border-l-[8px] ${corEstilo.border} rounded-lg shadow-md hover:shadow-lg transition-all ${monopolio ? 'w-full' : 'w-[48%]'}`}
+            className={`flex justify-between items-center py-2 px-3 ${corEstilo.bg} border-l-[8px] ${corEstilo.border} rounded-lg shadow-md hover:shadow-lg transition-all ${monopolio ? 'w-full' : 'w-[48%] min-w-[150px]'}`}
         >
-            <div className="text-start flex-1">
-                <p className="text-sm font-bold text-gray-900 leading-tight">
+            <div className="text-start flex-1 overflow-hidden">
+                <p
+                    className="text-sm font-bold text-gray-900 leading-tight truncate"
+                    title={nome}
+                >
                     {nome}
                 </p>
                 <p className="text-xs text-gray-700 font-semibold mt-0.5">
@@ -435,9 +504,9 @@ function CartaPropriedade({
             </div>
 
             <div
-                className={`flex gap-1.5 justify-center items-center px-2 py-1.5 rounded-lg text-sm font-bold shadow-sm ${numeroCasas === 5 ? 'bg-gradient-to-br from-red-500 to-red-600 text-white' : 'bg-gradient-to-br from-green-500 to-green-600 text-white'}`}
+                className={`flex gap-1.5 justify-center items-center px-2 py-1.5 rounded-lg text-sm font-bold shadow-sm ml-2 ${numeroCasas === 5 ? 'bg-gradient-to-br from-red-500 to-red-600 text-white' : 'bg-gradient-to-br from-green-500 to-green-600 text-white'}`}
             >
-                {numeroCasas === 5 ? <Hotel size={16} /> : <House size={16} />}
+                {numeroCasas === 5 ? <Hotel size={14} /> : <House size={14} />}
                 {numeroCasas === 5 ? '1' : numeroCasas}
             </div>
         </div>
@@ -453,7 +522,7 @@ interface CartaEstacaoProps {
 function CartaEstacao({ nome, aluguel, monopolio }: CartaEstacaoProps) {
     return (
         <div
-            className={`flex justify-between items-center py-2 px-3 bg-gray-50 border-l-[8px] border-gray-900 rounded-lg shadow-md hover:shadow-lg transition-all ${monopolio ? 'w-full' : 'w-[48%]'}`}
+            className={`flex justify-between items-center py-2 px-3 bg-gray-50 border-l-[8px] border-gray-900 rounded-lg shadow-md hover:shadow-lg transition-all ${monopolio ? 'w-full' : 'w-[48%] min-w-[150px]'}`}
         >
             <div className="text-start flex-1">
                 <div className="flex items-center gap-2">
@@ -479,7 +548,7 @@ interface CartaCompanhiaProps {
 function CartaCompanhia({ nome, monopolio }: CartaCompanhiaProps) {
     return (
         <div
-            className={`flex justify-between items-center py-2 px-3 bg-blue-50 border-l-[8px] border-blue-600 rounded-lg shadow-md hover:shadow-lg transition-all ${monopolio ? 'w-full' : 'w-[48%]'}`}
+            className={`flex justify-between items-center py-2 px-3 bg-blue-50 border-l-[8px] border-blue-600 rounded-lg shadow-md hover:shadow-lg transition-all ${monopolio ? 'w-full' : 'w-[48%] min-w-[150px]'}`}
         >
             <div className="text-start flex-1">
                 <div className="flex items-center gap-2">

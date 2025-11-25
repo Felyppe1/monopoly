@@ -34,7 +34,6 @@ export abstract class Carta {
         if (!nome) throw new Error('Nome é obrigatório.')
         if (!valorHipoteca) throw new Error('Valor de hipoteca é obrigatório.')
         if (!preco) throw new Error('Preço é obrigatório.')
-
         if (preco < 0) throw new Error('Preço deve ser maior ou igual a zero.')
 
         this.nome = nome
@@ -45,11 +44,9 @@ export abstract class Carta {
     getNome() {
         return this.nome
     }
-
     getPreco() {
         return this.preco
     }
-
     getValorHipoteca() {
         return this.valorHipoteca
     }
@@ -73,7 +70,6 @@ export class TituloDePosse extends Carta {
     private valorAluguel: number[]
     private precoCasa: number
     private precoHotel: number
-
     private numeroCasas: number = 0
     private numeroHoteis: number = 0
 
@@ -87,11 +83,8 @@ export class TituloDePosse extends Carta {
         preco,
     }: TituloDePosseInput) {
         super(nome, valorHipoteca, preco)
-
         if (!valorAluguel || valorAluguel.length === 0)
             throw new Error('Valores de aluguel são obrigatórios.')
-        if (precoCasa <= 0) throw new Error('Preço da casa inválido.')
-        if (precoHotel <= 0) throw new Error('Preço do hotel inválido.')
 
         this.cor = cor
         this.valorAluguel = valorAluguel
@@ -113,7 +106,6 @@ export class TituloDePosse extends Carta {
     getNumCasas(): number {
         return this.numeroCasas || 0
     }
-
     getNumHoteis(): number {
         return this.numeroHoteis || 0
     }
@@ -129,6 +121,11 @@ export class TituloDePosse extends Carta {
             this.numeroCasas = 0
             this.numeroHoteis = 1
         }
+    }
+
+    resetar() {
+        this.numeroCasas = 0
+        this.numeroHoteis = 0
     }
 
     toObject(): TituloDePosseOutput {
@@ -163,9 +160,6 @@ export class EstacaoDeMetro extends Carta {
         preco,
     }: EstacaoDeMetroInput) {
         super(nome, valorHipoteca, preco)
-        if (!valorAluguel || valorAluguel.length === 0)
-            throw new Error('Valores de aluguel são obrigatórios.')
-
         this.valorAluguel = valorAluguel
     }
 
@@ -187,7 +181,6 @@ export class EstacaoDeMetro extends Carta {
 }
 
 interface CompanhiaInput extends CartaInput {}
-
 export interface CompanhiaOutput extends CartaOutput {
     tipo: 'Companhia'
 }

@@ -1,27 +1,37 @@
 import { Button } from '@/components/ui/button'
 import { useJogoStore } from '@/store/useJogoStore'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { ESTADO_JOGO } from '@/domain/jogo'
 
-export function Default() {
-    const [dado1, setDado1] = useState(5)
-    const [dado2, setDado2] = useState(3)
-    const [rolando, setRolando] = useState(false)
+// NOVO: Interface para definir as props que este componente aceita
+interface DefaultProps {
+    onAbrirNegociacao?: () => void
+}
 
+export function Default({ onAbrirNegociacao }: DefaultProps) {
     const jogo = useJogoStore(state => state.jogo!)
     const setJogo = useJogoStore(state => state.setJogo)
-
     const estadoJogo = jogo!.toObject()
+
+    const [dado1, setDado1] = useState(estadoJogo.ultimoResultadoDados.dado1)
+    const [dado2, setDado2] = useState(estadoJogo.ultimoResultadoDados.dado2)
+    const [rolando, setRolando] = useState(false)
+
+    const jogoAcabou = estadoJogo.estado === ESTADO_JOGO.FINALIZADO
+
+    useEffect(() => {
+        setDado1(estadoJogo.ultimoResultadoDados.dado1)
+        setDado2(estadoJogo.ultimoResultadoDados.dado2)
+    }, [estadoJogo.ultimoResultadoDados])
 
     const rolarDados = () => {
         setRolando(true)
 
-        // Simular movimento dos dados
         const intervalo = setInterval(() => {
             setDado1(Math.floor(Math.random() * 6) + 1)
             setDado2(Math.floor(Math.random() * 6) + 1)
         }, 100)
 
-        // Parar após 1 segundo e meio e definir os valores finais
         setTimeout(() => {
             clearInterval(intervalo)
             const resultado = jogo.jogarDados()
@@ -29,22 +39,20 @@ export function Default() {
 
             setDado1(resultado.dado1)
             setDado2(resultado.dado2)
-
             setRolando(false)
         }, 1500)
     }
 
     const gerarPontosDado = (numero: number) => {
         const pontos = [
-            [], // não usado
-            [4], // 1
-            [0, 8], // 2
-            [0, 4, 8], // 3
-            [0, 2, 6, 8], // 4
-            [0, 2, 4, 6, 8], // 5
-            [0, 1, 2, 6, 7, 8], // 6
+            [],
+            [4],
+            [0, 8],
+            [0, 4, 8],
+            [0, 2, 6, 8],
+            [0, 2, 4, 6, 8],
+            [0, 1, 2, 6, 7, 8],
         ]
-
         return Array.from(
             { length: 9 },
             (_, i) => pontos[numero]?.includes(i) || false,
@@ -53,7 +61,6 @@ export function Default() {
 
     const virarTurno = () => {
         jogo.virarTurno()
-
         setJogo(jogo)
     }
 
@@ -91,21 +98,35 @@ export function Default() {
                     onClick={rolarDados}
                     disabled={
                         rolando ||
+                        jogoAcabou ||
                         (estadoJogo.jogouOsDados &&
                             estadoJogo.quantidadeDuplas === 0)
                     }
                 >
                     {rolando ? 'ROLANDO...' : 'JOGAR DADOS'}
                 </Button>
+
                 <Button
                     onClick={virarTurno}
                     disabled={
                         !estadoJogo.jogouOsDados ||
+                        jogoAcabou ||
                         estadoJogo.quantidadeDuplas > 0
                     }
                 >
                     VIRAR TURNO
                 </Button>
+
+                {/* Botão para abrir Negociação */}
+                {onAbrirNegociacao && !jogoAcabou && (
+                    <Button
+                        onClick={onAbrirNegociacao}
+                        variant="secondary"
+                        className="bg-indigo-100 text-indigo-900 border-indigo-300 hover:bg-indigo-200"
+                    >
+                        NEGOCIAR
+                    </Button>
+                )}
             </div>
         </>
     )
