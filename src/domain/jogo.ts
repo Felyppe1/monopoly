@@ -200,7 +200,7 @@ export class Jogo {
             jogadorAtual.mover(dado1 + dado2)
             const cartaComprada = this.eventoSorteCofre(jogadorAtual)
 
-            // NOVO: Aluguel Automático
+            // Aluguel Automático
             this.cobrarAluguel({ dado1, dado2 })
 
             const espacoAtual = this.espacosTabuleiro[jogadorAtual.getPosicao()]
@@ -264,7 +264,7 @@ export class Jogo {
     }
 
     private eventoSorteCofre(jogador: Jogador): CartaEvento | null {
-        // (Mesma lógica do original, apenas chamando this.aplicarEfeitoCarta)
+        // (Lógica simplificada conforme original)
         return null
     }
 
@@ -273,7 +273,6 @@ export class Jogo {
         resultado: any,
         cartaOriginal: CartaEvento,
     ): void {
-        // (Lógica original, mas usando processarPagamento para pagamentos)
         if (resultado.valor !== undefined && resultado.valor !== 0) {
             if (resultado.valor > 0) {
                 jogador.receber(resultado.valor)
@@ -290,7 +289,6 @@ export class Jogo {
                 }
             }
         }
-        // lógica de movimento de carta
     }
 
     private encontrarPosicaoPorNome(nome: string) {
@@ -302,7 +300,26 @@ export class Jogo {
     private getProprietario(nomeEspaco: NomeEspaco) {
         return this.jogadores.find(j => j.getCarta(nomeEspaco)) || null
     }
-    jogadorUsaCartaSaidaPrisao() {}
+
+    // --- CORREÇÃO: Implementação correta do uso da carta ---
+    jogadorUsaCartaSaidaPrisao() {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        const carta = jogador.usarCartaSaidaPrisao()
+
+        if (carta) {
+            // Devolve a carta para o baralho apropriado
+            if (carta.getTipo() === TIPO_CARTA.SORTE) {
+                this.baralho.devolverCartaSorte(carta)
+            } else {
+                this.baralho.devolverCartaCofre(carta)
+            }
+
+            // Libera o jogador
+            jogador.sairDaPrisao()
+            console.log(`${jogador.getNome()} usou carta para sair da prisão.`)
+        }
+    }
+
     comprarEspaco() {
         const atual = this.jogadores[this.indiceJogadorAtual]
         const espaco = this.espacosTabuleiro[atual.getPosicao()]
@@ -363,6 +380,116 @@ export class Jogo {
                 )
             }
         }
+    }
+
+    getJogador(indice: number): Jogador {
+        return this.jogadores[indice]
+    }
+
+    // --- LÓGICAS DO BOT ---
+
+    public botDeveComprarEspaco(): boolean {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        const espaco = this.espacosTabuleiro[jogador.getPosicao()]
+        const carta = this.banco.getCarta(espaco.getNome())
+
+        if (!carta) return false
+        return jogador.getSaldo() >= carta.getPreco()
+    }
+
+    // NOVO: Bot tenta pagar para sair da prisão se tiver dinheiro
+    public botTentarPagarParaSairDaPrisao(): boolean {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        if (!jogador.getEstaPreso()) return false
+
+        // Se tiver saldo > 50 + 200 de reserva, paga
+        if (jogador.getSaldo() >= 250) {
+            if (jogador.pagar(50)) {
+                jogador.sairDaPrisao()
+                console.log(
+                    `${jogador.getNome()} pagou $50 para sair da prisão.`,
+                )
+                return true
+            }
+        }
+        return false
+    }
+
+    public botTentarSairDaPrisao(): boolean {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        if (!jogador.getEstaPreso()) return false
+
+        if (jogador.temCartaSaidaPrisao()) {
+            this.jogadorUsaCartaSaidaPrisao()
+            return true
+        }
+        return false
+    }
+
+    public botRealizarConstrucoes(): void {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        const saldoReserva = 200
+
+        this.espacosTabuleiro.forEach(espaco => {
+            if (espaco instanceof Propriedade) {
+                const titulo = espaco.getTituloDePosse()
+
+                if (this.getProprietario(espaco.getNome()) === jogador) {
+                    const cor = titulo.getCor()
+
+                    const totalDaCor = this.espacosTabuleiro.filter(
+                        e =>
+                            e instanceof Propriedade &&
+                            e.getTituloDePosse().getCor() === cor,
+                    ).length
+                    const qtdDoJogador = jogador.getQuantidadeDeTitulos(cor)
+
+                    if (qtdDoJogador === totalDaCor) {
+                        const custoCasa = titulo.toObject().precoCasa
+                        const custoHotel = titulo.toObject().precoHotel
+
+                        if (
+                            titulo.getNumCasas() < 4 &&
+                            jogador.getSaldo() >= custoCasa + saldoReserva
+                        ) {
+                            if (jogador.pagar(custoCasa)) {
+                                titulo.adicionarCasa()
+                                console.log(
+                                    `[BOT] Construiu Casa em ${espaco.getNome()}`,
+                                )
+                            }
+                        } else if (
+                            titulo.getNumCasas() === 4 &&
+                            titulo.getNumHoteis() === 0 &&
+                            jogador.getSaldo() >= custoHotel + saldoReserva
+                        ) {
+                            if (jogador.pagar(custoHotel)) {
+                                titulo.adicionarHotel()
+                                console.log(
+                                    `[BOT] Construiu HOTEL em ${espaco.getNome()}`,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    public botGerenciarConstrucoes() {
+        this.botRealizarConstrucoes()
+    }
+
+    public botPodeComprarCartaAtual(): boolean {
+        const jogador = this.jogadores[this.indiceJogadorAtual]
+        const espaco = this.espacosTabuleiro[jogador.getPosicao()]
+
+        const carta = this.banco.getCarta(espaco.getNome())
+
+        if (carta && jogador.getSaldo() >= carta.getPreco()) {
+            return true
+        }
+        return false
     }
 
     toObject(): JogoOutput {

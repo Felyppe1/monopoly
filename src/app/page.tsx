@@ -19,6 +19,7 @@ interface Jogador {
     id: number
     nome: string
     personagem: PERSONAGEM
+    ehBot: boolean
 }
 
 const personagens = [
@@ -42,8 +43,8 @@ const personagens = [
 
 export default function Home() {
     const [jogadores, setJogadores] = useState<Jogador[]>([
-        { id: 1, nome: '', personagem: PERSONAGEM.PATO },
-        { id: 2, nome: '', personagem: PERSONAGEM.CARRO },
+        { id: 1, nome: '', personagem: PERSONAGEM.PATO, ehBot: false },
+        { id: 2, nome: '', personagem: PERSONAGEM.CARRO, ehBot: false },
     ])
 
     const setJogo = useJogoStore(state => state.setJogo)
@@ -63,6 +64,7 @@ export default function Home() {
                     id: jogadores.length + 1,
                     nome: '',
                     personagem: personagemDisponivel,
+                    ehBot: false,
                 },
             ])
         }
@@ -82,6 +84,14 @@ export default function Home() {
         )
     }
 
+    const toggleBot = (id: number) => {
+        setJogadores(
+            jogadores.map(jogador =>
+                jogador.id === id ? { ...jogador, ehBot: !jogador.ehBot, nome: !jogador.ehBot ? `Bot ${jogador.personagem}` : '' } : jogador,
+            ),
+        )
+    }
+
     const selecionarPersonagem = (
         jogadorId: number,
         personagem: PERSONAGEM,
@@ -94,7 +104,7 @@ export default function Home() {
     }
 
     const podeJogar =
-        jogadores.length >= 2 && jogadores.every(j => j.nome.trim() !== '')
+        jogadores.length >= 2 && jogadores.every(j => j.ehBot || j.nome.trim() !== '')
 
     const iniciarJogo = () => {
         try {
@@ -208,6 +218,19 @@ export default function Home() {
                                     }
                                     className="text-center"
                                 />
+
+                                <div className="flex items-center justify-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id={`bot-${jogador.id}`}
+                                        checked={jogador.ehBot}
+                                        onChange={() => toggleBot(jogador.id)}
+                                        className="w-4 h-4"
+                                    />
+                                    <label htmlFor={`bot-${jogador.id}`} className="text-xs text-white font-bold cursor-pointer select-none">
+                                        BOT
+                                    </label>
+                                </div>
                             </CardContent>
 
                             {jogadores.length > 2 && index >= 2 && (

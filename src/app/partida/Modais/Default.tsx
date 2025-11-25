@@ -1,18 +1,24 @@
 import { Button } from '@/components/ui/button'
 import { useJogoStore } from '@/store/useJogoStore'
-import { useState, useEffect } from 'react' // Importar useEffect
+import { useState, useEffect } from 'react'
+import { ESTADO_JOGO } from '@/domain/jogo'
 
-export function Default() {
+// NOVO: Interface para definir as props que este componente aceita
+interface DefaultProps {
+    onAbrirNegociacao?: () => void
+}
+
+export function Default({ onAbrirNegociacao }: DefaultProps) {
     const jogo = useJogoStore(state => state.jogo!)
     const setJogo = useJogoStore(state => state.setJogo)
     const estadoJogo = jogo!.toObject()
 
-    // Inicializa com o valor salvo no backend, não com 5 e 3 fixos
     const [dado1, setDado1] = useState(estadoJogo.ultimoResultadoDados.dado1)
     const [dado2, setDado2] = useState(estadoJogo.ultimoResultadoDados.dado2)
     const [rolando, setRolando] = useState(false)
 
-    // Sincroniza se o jogo mudar (ex: troca de turno ou carregamento)
+    const jogoAcabou = estadoJogo.estado === ESTADO_JOGO.FINALIZADO
+
     useEffect(() => {
         setDado1(estadoJogo.ultimoResultadoDados.dado1)
         setDado2(estadoJogo.ultimoResultadoDados.dado2)
@@ -28,8 +34,6 @@ export function Default() {
 
         setTimeout(() => {
             clearInterval(intervalo)
-
-            // O jogo calcula, processa o movimento, aluguel automático e salva os dados
             const resultado = jogo.jogarDados()
             setJogo(jogo)
 
@@ -94,21 +98,35 @@ export function Default() {
                     onClick={rolarDados}
                     disabled={
                         rolando ||
+                        jogoAcabou ||
                         (estadoJogo.jogouOsDados &&
                             estadoJogo.quantidadeDuplas === 0)
                     }
                 >
                     {rolando ? 'ROLANDO...' : 'JOGAR DADOS'}
                 </Button>
+
                 <Button
                     onClick={virarTurno}
                     disabled={
                         !estadoJogo.jogouOsDados ||
+                        jogoAcabou ||
                         estadoJogo.quantidadeDuplas > 0
                     }
                 >
                     VIRAR TURNO
                 </Button>
+
+                {/* Botão para abrir Negociação */}
+                {onAbrirNegociacao && !jogoAcabou && (
+                    <Button
+                        onClick={onAbrirNegociacao}
+                        variant="secondary"
+                        className="bg-indigo-100 text-indigo-900 border-indigo-300 hover:bg-indigo-200"
+                    >
+                        NEGOCIAR
+                    </Button>
+                )}
             </div>
         </>
     )

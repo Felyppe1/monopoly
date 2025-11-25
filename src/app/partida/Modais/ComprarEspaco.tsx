@@ -1,4 +1,5 @@
 import { useJogoStore } from '@/store/useJogoStore'
+import { useEffect } from 'react'
 import {
     TabuleiroDialog,
     TabuleiroDialogContent,
@@ -21,11 +22,12 @@ export function ComprarEspaco({ carta, onClose }: ComprarEspacoProps) {
     const jogo = useJogoStore(state => state.jogo!)
     const setJogo = useJogoStore(state => state.setJogo)
 
-    // Obter saldo do jogador atual para verificação
+    // Dados do Jogador Atual
     const estadoJogo = jogo.toObject()
     const jogadorAtual = estadoJogo.jogadores[estadoJogo.indiceJogadorAtual]
     const temSaldo = jogadorAtual.saldo >= carta.preco
 
+    // --- Função de Compra Unificada ---
     const handleComprar = () => {
         if (!temSaldo) return // Proteção extra
 
@@ -38,6 +40,22 @@ export function ComprarEspaco({ carta, onClose }: ComprarEspacoProps) {
             onClose()
         }
     }
+
+    // --- Automação do BOT ---
+    useEffect(() => {
+        if (jogadorAtual.ehBot) {
+            const timer = setTimeout(() => {
+                // Usa método do Jogo para decidir (inteligência do bot)
+                if (jogo.botPodeComprarCartaAtual()) {
+                    handleComprar()
+                } else {
+                    onClose()
+                }
+            }, 1500)
+
+            return () => clearTimeout(timer)
+        }
+    }, [])
 
     return (
         <TabuleiroDialog open={true}>

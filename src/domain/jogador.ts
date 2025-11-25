@@ -30,6 +30,7 @@ export interface JogadorInput {
     estaPreso: boolean
     turnosNaPrisao: number
     tentativasDuplo: number
+    ehBot: boolean
     falido: boolean
 }
 
@@ -41,6 +42,7 @@ export interface CriarJogadorInput {
     nome: string
     personagem: PERSONAGEM
     saldo?: number
+    ehBot?: boolean
 }
 
 export class Jogador {
@@ -53,9 +55,10 @@ export class Jogador {
     private turnosNaPrisao: number
     private tentativasDuplo: number
     private cartasSaidaPrisao: CartaEvento[] = []
+    private ehBot: boolean
     private falido: boolean
 
-    static create({ nome, personagem }: CriarJogadorInput) {
+    static create({ nome, personagem, ehBot = false }: CriarJogadorInput) {
         const SALDO_INICIAL = 1500
         return new Jogador({
             nome,
@@ -66,6 +69,7 @@ export class Jogador {
             turnosNaPrisao: 0,
             tentativasDuplo: 0,
             saldo: SALDO_INICIAL,
+            ehBot: ehBot,
             falido: false,
         })
     }
@@ -78,6 +82,7 @@ export class Jogador {
         estaPreso,
         turnosNaPrisao,
         tentativasDuplo,
+        ehBot,
         falido,
     }: JogadorInput) {
         if (!nome) throw new Error('Nome do jogador é obrigatório')
@@ -86,6 +91,7 @@ export class Jogador {
             throw new Error('Posição deve estar entre 0 e 39')
 
         this.nome = nome
+        this.ehBot = ehBot
         this.personagem = personagem
         this.posicao = posicao
         this.cartas = cartas
@@ -144,6 +150,15 @@ export class Jogador {
     adicionarCartaSaidaPrisao(carta: CartaEvento) {
         this.cartasSaidaPrisao.push(carta)
     }
+
+    getCartaSaidaPrisao(): CartaEvento[] {
+        return this.cartasSaidaPrisao
+    }
+
+    getCartas(): Carta[] {
+        return this.cartas
+    }
+
     temCartaSaidaPrisao(): boolean {
         return this.cartasSaidaPrisao.length > 0
     }
@@ -158,6 +173,10 @@ export class Jogador {
     }
     getTentativasDuplo() {
         return this.tentativasDuplo
+    }
+
+    getEhBot() {
+        return this.ehBot
     }
 
     mover(casas: number) {
@@ -197,6 +216,21 @@ export class Jogador {
         if (this.saldo < valor) return false
         this.saldo -= valor
         return true
+    }
+
+    public removerCarta(nomeEspaco: NomeEspaco): boolean {
+        const cartaIndex: number = this.cartas.findIndex(
+            carta => carta.getNome() === nomeEspaco,
+        )
+        if (cartaIndex !== -1) {
+            this.cartas.splice(cartaIndex, 1)
+            return true
+        }
+        return false
+    }
+
+    public adicionarCarta(carta: Carta) {
+        this.cartas.push(carta)
     }
 
     getCarta(nomeEspaco: NomeEspaco) {
@@ -248,6 +282,7 @@ export class Jogador {
             estaPreso: this.estaPreso,
             turnosNaPrisao: this.turnosNaPrisao,
             tentativasDuplo: this.tentativasDuplo,
+            ehBot: this.ehBot,
             falido: this.falido,
         }
     }
