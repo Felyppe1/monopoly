@@ -26,7 +26,7 @@ export const CartaSorteBau = ({ carta, size = 'sm' }: CartaSorteBauProps) => {
 
                 <div className="flex items-center gap-8 h-full">
                     <img
-                        src="homem-monopoly.png"
+                        src="./homem-monopoly.png"
                         className="w-26 self-end ml-[5%]"
                     />
 

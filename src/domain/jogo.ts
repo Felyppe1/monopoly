@@ -201,7 +201,7 @@ export class Jogo {
             jogadorAtual.tentarSairDaPrisao(dado1, dado2)
         } else {
             jogadorAtual.mover(dado1 + dado2)
-            const cartaComprada = this.eventoSorteCofre(jogadorAtual)
+            const cartaComprada = this.eventoSorteCofre()
 
             // Aluguel Automático
             this.cobrarAluguel({ dado1, dado2 })
@@ -275,7 +275,7 @@ export class Jogo {
             espacoAtual.getTipo() === TIPO_ESPACO_ENUM.COFRE ||
             espacoAtual.getTipo() === TIPO_ESPACO_ENUM.SORTE
         ) {
-            return this.eventoSorteCofre(jogadorAtual)
+            return this.eventoSorteCofre()
         }
 
         return null
@@ -285,7 +285,8 @@ export class Jogo {
         this.virarTurno()
     }
 
-    private eventoSorteCofre(jogadorAtual: Jogador): CartaEvento | null {
+    public eventoSorteCofre(): CartaEvento | null {
+        const jogadorAtual = this.jogadores[this.indiceJogadorAtual]
         const espacoAtual = this.espacosTabuleiro[jogadorAtual.getPosicao()]
 
         switch (espacoAtual.getTipo()) {

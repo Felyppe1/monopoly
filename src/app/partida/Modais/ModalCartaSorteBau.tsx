@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/tabuleiro-dialog'
 import { Button } from '@/components/ui/button'
 import { CartaSorteBau } from '@/components/carta-sorte-bau'
-import { CartaEventoOutput } from '@/domain/CartaCofreouSorte'
+import { CartaEventoOutput, TIPO_CARTA } from '@/domain/CartaCofreouSorte'
 
 interface ModalCartaSorteBauProps {
     carta: CartaEventoOutput
@@ -38,7 +38,7 @@ export function ModalCartaSorteBau({
             <TabuleiroDialogContent className="w-full max-w-[40rem] bg-teal-700 flex flex-col p-4">
                 <TabuleiroDialogHeader>
                     <TabuleiroDialogTitle className="text-white text-center">
-                        {carta.tipo === 'SORTE'
+                        {carta.tipo === TIPO_CARTA.SORTE
                             ? 'Carta de Sorte!'
                             : 'Carta de Cofre!'}
                     </TabuleiroDialogTitle>

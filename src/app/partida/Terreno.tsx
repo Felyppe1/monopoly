@@ -69,7 +69,7 @@ export function Terreno({
             {dono && (
                 <div className="absolute -top-2 -right-2 z-20 bg-white rounded-full border border-black p-0.5 shadow-md">
                     <img
-                        src={`/personagem-${dono}.png`}
+                        src={`./personagem-${dono}.png`}
                         className="w-4 h-4"
                         alt="dono"
                     />
@@ -88,14 +88,14 @@ export function Terreno({
                 <div className="flex flex-col justify-between h-full">
                     {tipo === 'ponto de partida' && (
                         <img
-                            src="/inicio.png"
+                            src="./inicio.png"
                             className="w-[90%] self-center"
                         />
                     )}
                     {tipo === 'prisão' && (
                         <>
                             <img
-                                src="/cadeia.png"
+                                src="./cadeia.png"
                                 className="w-[60%] self-end -m-0.5"
                             />
                             <p className="self-center mb-[10%] font-bold">
@@ -107,7 +107,7 @@ export function Terreno({
                         <>
                             <img
                                 className="w-[60%] self-center"
-                                src="/estacionamento-livre.png"
+                                src="./estacionamento-livre.png"
                             />
                             <p className="self-center mb-[10%] text-center font-bold px-1">
                                 ESTACIONAMENTO LIVRE
@@ -118,7 +118,7 @@ export function Terreno({
                         <>
                             <img
                                 className="w-[65%] mt-[5%] self-center"
-                                src="/va-para-prisao.png"
+                                src="./va-para-prisao.png"
                             />
                             <p className="self-center mb-[10%] text-center font-bold px-1">
                                 VÁ PARA A PRISÃO
@@ -139,21 +139,21 @@ export function Terreno({
                                 <>
                                     {tipo === 'estação de metrô' && (
                                         <img
-                                            src="/metro.png"
+                                            src="./metro.png"
                                             className="w-12"
                                         />
                                     )}
                                     {tipo === 'companhia' &&
                                         nome === 'Companhia Elétrica' && (
                                             <img
-                                                src="/companhia-eletrica.png"
+                                                src="./companhia-eletrica.png"
                                                 className="w-8"
                                             />
                                         )}
                                     {tipo === 'imposto' &&
                                         nome === 'Taxa de Riqueza' && (
                                             <img
-                                                src="/imposto-riqueza.png"
+                                                src="./imposto-riqueza.png"
                                                 className="w-10"
                                             />
                                         )}
@@ -169,7 +169,7 @@ export function Terreno({
                                     <span className="font-bold">{nome}</span>
                                     {tipo === 'estação de metrô' && (
                                         <img
-                                            src="/metro.png"
+                                            src="./metro.png"
                                             className="w-14"
                                         />
                                     )}
@@ -177,7 +177,7 @@ export function Terreno({
                                         nome ===
                                             'Companhia de Saneamento Básico' && (
                                             <img
-                                                src="/companhia-saneamento.png"
+                                                src="./companhia-saneamento.png"
                                                 className="w-10"
                                             />
                                         )}
@@ -192,7 +192,7 @@ export function Terreno({
                                     {(tipo === 'sorte' || tipo === 'cofre') && (
                                         <>
                                             <img
-                                                src={`/${tipo}.png`}
+                                                src={`./${tipo}.png`}
                                                 className={`${tipo === 'sorte' ? 'w-6' : 'w-10'}`}
                                             />
                                             <div className="flex flex-col">
@@ -218,7 +218,7 @@ export function Terreno({
                                                     tipo.slice(1)}
                                             </span>
                                             <img
-                                                src={`/${tipo}.png`}
+                                                src={`./${tipo}.png`}
                                                 className={`${tipo === 'sorte' ? 'w-6' : 'w-10'}`}
                                             />
                                             <span>
@@ -252,7 +252,7 @@ export function Terreno({
                 return (
                     <img
                         key={personagem}
-                        src={`/personagem-${personagem}.png`}
+                        src={`./personagem-${personagem}.png`}
                         alt=""
                         className="absolute w-10 left-1/2 top-1/2 group-hover:opacity-10 transition-opacity duration-100 z-10"
                         style={{
