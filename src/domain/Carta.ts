@@ -1,3 +1,5 @@
+import { NomeEspaco } from './dados/nome-espacos'
+
 export enum COR_ENUM {
     AZUL = 'azul',
     AZUL_CLARO = 'azul-claro',
@@ -11,23 +13,27 @@ export enum COR_ENUM {
 }
 
 export interface CartaInput {
-    nome: string
+    nome: NomeEspaco
     valorHipoteca: number
     preco: number
 }
 
 export interface CartaOutput extends CartaInput {}
 
+export type CartaOutputUnion =
+    | TituloDePosseOutput
+    | EstacaoDeMetroOutput
+    | CompanhiaOutput
+
 export abstract class Carta {
-    protected nome: string
+    protected nome: NomeEspaco
     protected valorHipoteca: number
     protected preco: number
 
-    constructor(nome: string, valorHipoteca: number, preco: number) {
+    constructor(nome: NomeEspaco, valorHipoteca: number, preco: number) {
         if (!nome) throw new Error('Nome é obrigatório.')
         if (!valorHipoteca) throw new Error('Valor de hipoteca é obrigatório.')
         if (!preco) throw new Error('Preço é obrigatório.')
-
         if (preco < 0) throw new Error('Preço deve ser maior ou igual a zero.')
 
         this.nome = nome
@@ -38,39 +44,25 @@ export abstract class Carta {
     getNome() {
         return this.nome
     }
-
+    getPreco() {
+        return this.preco
+    }
     getValorHipoteca() {
         return this.valorHipoteca
     }
 
-    toObject(): CartaOutput {
-        return {
-            nome: this.nome,
-            valorHipoteca: this.valorHipoteca,
-            preco: this.preco,
-        }
-    }
+    abstract toObject(): CartaOutputUnion
 }
 
-export interface TituloDePosseInput {
-    nome: string
-    valorHipoteca: number
+export interface TituloDePosseInput extends CartaInput {
     cor: COR_ENUM
     valorAluguel: number[]
     precoCasa: number
     precoHotel: number
-    preco: number
 }
 
-// Correção aplicada: definido explicitamente, sem 'propriedade'
-export type TituloDePosseOutput = {
-    nome: string
-    valorHipoteca: number
-    cor: COR_ENUM
-    valorAluguel: number[]
-    precoCasa: number
-    precoHotel: number
-    preco: number
+export interface TituloDePosseOutput extends TituloDePosseInput {
+    tipo: 'TituloDePosse'
 }
 
 export class TituloDePosse extends Carta {
@@ -78,6 +70,8 @@ export class TituloDePosse extends Carta {
     private valorAluguel: number[]
     private precoCasa: number
     private precoHotel: number
+    private numeroCasas: number = 0
+    private numeroHoteis: number = 0
 
     constructor({
         nome,
@@ -89,19 +83,19 @@ export class TituloDePosse extends Carta {
         preco,
     }: TituloDePosseInput) {
         super(nome, valorHipoteca, preco)
-
         if (!valorAluguel || valorAluguel.length === 0)
             throw new Error('Valores de aluguel são obrigatórios.')
-        if (precoCasa <= 0) throw new Error('Preço da casa inválido.')
-        if (precoHotel <= 0) throw new Error('Preço do hotel inválido.')
 
         this.cor = cor
         this.valorAluguel = valorAluguel
         this.precoCasa = precoCasa
         this.precoHotel = precoHotel
+
+        this.numeroCasas = 0
+        this.numeroHoteis = 0
     }
 
-    getCor() {
+    getCor(): COR_ENUM {
         return this.cor
     }
 
@@ -109,45 +103,52 @@ export class TituloDePosse extends Carta {
         return this.valorAluguel[Math.min(nCasas, this.valorAluguel.length - 1)]
     }
 
+    getNumCasas(): number {
+        return this.numeroCasas || 0
+    }
+    getNumHoteis(): number {
+        return this.numeroHoteis || 0
+    }
+
+    adicionarCasa() {
+        if (this.numeroCasas < 4 && this.numeroHoteis === 0) {
+            this.numeroCasas++
+        }
+    }
+
+    adicionarHotel() {
+        if (this.numeroCasas === 4) {
+            this.numeroCasas = 0
+            this.numeroHoteis = 1
+        }
+    }
+
+    resetar() {
+        this.numeroCasas = 0
+        this.numeroHoteis = 0
+    }
+
     toObject(): TituloDePosseOutput {
         return {
-            ...super.toObject(),
+            nome: this.nome,
+            valorHipoteca: this.valorHipoteca,
+            preco: this.preco,
             cor: this.cor,
             valorAluguel: this.valorAluguel,
             precoCasa: this.precoCasa,
             precoHotel: this.precoHotel,
+            tipo: 'TituloDePosse',
         }
     }
 }
 
-export interface CompanhiaInput {
-    nome: string
-    valorHipoteca: number
-    preco: number
-}
-
-export type CompanhiaOutput = CompanhiaInput
-
-export class Companhia extends Carta {
-    constructor({ nome, valorHipoteca, preco }: CompanhiaInput) {
-        super(nome, valorHipoteca, preco)
-    }
-
-    toObject(): CompanhiaOutput {
-        return {
-            ...super.toObject(),
-        }
-    }
-}
-
-export interface EstacaoDeMetroInput {
-    nome: string
-    valorHipoteca: number
+export interface EstacaoDeMetroInput extends CartaInput {
     valorAluguel: number[]
-    preco: number
 }
 
-export type EstacaoDeMetroOutput = EstacaoDeMetroInput
+export interface EstacaoDeMetroOutput extends EstacaoDeMetroInput {
+    tipo: 'EstacaoDeMetro'
+}
 
 export class EstacaoDeMetro extends Carta {
     private valorAluguel: number[]
@@ -159,9 +160,6 @@ export class EstacaoDeMetro extends Carta {
         preco,
     }: EstacaoDeMetroInput) {
         super(nome, valorHipoteca, preco)
-        if (!valorAluguel || valorAluguel.length === 0)
-            throw new Error('Valores de aluguel são obrigatórios.')
-
         this.valorAluguel = valorAluguel
     }
 
@@ -173,8 +171,31 @@ export class EstacaoDeMetro extends Carta {
 
     toObject(): EstacaoDeMetroOutput {
         return {
-            ...super.toObject(),
+            nome: this.nome,
+            valorHipoteca: this.valorHipoteca,
+            preco: this.preco,
             valorAluguel: this.valorAluguel,
+            tipo: 'EstacaoDeMetro',
+        }
+    }
+}
+
+interface CompanhiaInput extends CartaInput {}
+export interface CompanhiaOutput extends CartaOutput {
+    tipo: 'Companhia'
+}
+
+export class Companhia extends Carta {
+    constructor(data: CompanhiaInput) {
+        super(data.nome, data.valorHipoteca, data.preco)
+    }
+
+    toObject(): CompanhiaOutput {
+        return {
+            nome: this.nome,
+            valorHipoteca: this.valorHipoteca,
+            preco: this.preco,
+            tipo: 'Companhia',
         }
     }
 }

@@ -1,42 +1,90 @@
-import { Jogo, JogoOutput } from '@/domain/jogo'
+import { Jogo } from '@/domain/jogo'
 import { create } from 'zustand'
+import { CartaEvento } from '@/domain/CartaCofreouSorte'
+import { CartaOutputUnion } from '@/domain/Carta'
 
 interface JogoStore {
     jogo: Jogo | null
-    estadoJogo: JogoOutput | null
+    cartaAtiva: CartaEvento | null
+    espacoParaComprar: CartaOutputUnion | null
 
     setJogo: (jogo: Jogo) => void
-    setEstadoJogo: (estado: JogoOutput) => void
     resetarJogo: () => void
-    jogarDados: () => { dado1: number; dado2: number } | null
+    jogarDados: () => void
+    fecharModalCarta: () => void
+    setEspacoParaComprar: (carta: CartaOutputUnion | null) => void
+    fecharComprarEspaco: () => void
+    resolverCarta: () => void
 }
 
 const estadoInicial = {
     jogo: null,
-    estadoJogo: null,
+    espacoParaComprar: null,
 }
 
 export const useJogoStore = create<JogoStore>((set, get) => ({
     ...estadoInicial,
+    cartaAtiva: null,
 
     setJogo: jogo => {
-        set(() => ({ jogo }))
-    },
-
-    setEstadoJogo: estado => {
-        set(() => ({ estadoJogo: estado }))
+        set(() => ({
+            jogo: Object.assign(
+                Object.create(Object.getPrototypeOf(jogo)),
+                jogo,
+            ),
+        }))
     },
 
     resetarJogo: () => {
         set(() => estadoInicial)
     },
 
+    setEspacoParaComprar: carta => {
+        set({ espacoParaComprar: carta })
+    },
+
+    fecharComprarEspaco: () => {
+        set({ espacoParaComprar: null })
+    },
+
     jogarDados: () => {
-        const { jogo } = get()
-        if (!jogo) return null
-        
+        console.log('🔥 A STORE FOI CHAMADA! 🔥')
+        const jogo = get().jogo
+        if (!jogo) return
+
+        // 1. Chama o jogo e recebe o pacote (dados + carta)
         const resultado = jogo.jogarDados()
-        set(() => ({ estadoJogo: jogo.toObject() }))
-        return resultado
+
+        // DEBUG: Veja se chegou na store
+        console.log('📦 STORE RECEBEU:', resultado.cartaComprada)
+
+        set(() => ({
+            jogo: Object.assign(
+                Object.create(Object.getPrototypeOf(jogo)),
+                jogo,
+            ),
+
+            cartaAtiva: resultado.cartaComprada || null,
+        }))
+    },
+
+    fecharModalCarta: () => {
+        set({ cartaAtiva: null })
+    },
+
+    resolverCarta: () => {
+        const { jogo, cartaAtiva } = get()
+
+        if (jogo && cartaAtiva) {
+            jogo.realizarAcaoCarta(cartaAtiva)
+
+            set({
+                jogo: Object.assign(
+                    Object.create(Object.getPrototypeOf(jogo)),
+                    jogo,
+                ),
+                cartaAtiva: null,
+            })
+        }
     },
 }))

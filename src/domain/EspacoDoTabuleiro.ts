@@ -1,4 +1,6 @@
 import {
+    Carta,
+    CartaOutput,
     TituloDePosse,
     TituloDePosseOutput,
     EstacaoDeMetro as CartaEstacaoDeMetro,
@@ -6,6 +8,7 @@ import {
     Companhia as CartaCompanhia,
     CompanhiaOutput as CartaCompanhiaOutput,
 } from './Carta'
+import { NomeEspaco } from './dados/nome-espacos'
 
 export enum TIPO_ESPACO_ENUM {
     PROPRIEDADE = 'propriedade',
@@ -20,28 +23,55 @@ export enum TIPO_ESPACO_ENUM {
     VA_PARA_PRISAO = 'vá para prisão',
 }
 
+interface EspacoDoTabuleiroBaseOutput
+    extends Omit<EspacoDoTabuleiroInput, 'tipo'> {}
+
+export type EspacoDoTabuleiroOutputUnion =
+    | EspacoDoTabuleiroExcludeOutput
+    | PropriedadeOutput
+    | EstacaoDeMetroOutput
+    | CompanhiaOutput
+
 export interface EspacoDoTabuleiroInput {
-    nome: string
+    nome: NomeEspaco
     posicao: number
     tipo: TIPO_ESPACO_ENUM
+}
+
+export interface EspacoDoTabuleiroExcludeOutput
+    extends EspacoDoTabuleiroBaseOutput {
+    tipo: Exclude<
+        TIPO_ESPACO_ENUM,
+        | TIPO_ESPACO_ENUM.PROPRIEDADE
+        | TIPO_ESPACO_ENUM.ESTACAO_DE_METRO
+        | TIPO_ESPACO_ENUM.COMPANHIA
+    >
 }
 
 export interface EspacoDoTabuleiroOutput extends EspacoDoTabuleiroInput {}
 
 export class EspacoDoTabuleiro {
-    nome: string
-    posicao: number
-    tipo: TIPO_ESPACO_ENUM
+    protected nome: NomeEspaco
+    protected posicao: number
+    protected tipo: TIPO_ESPACO_ENUM
 
-    constructor(nome: string, posicao: number, tipo: TIPO_ESPACO_ENUM) {
-        if (!nome) throw new Error('Nome do espaço é obrigatório.')
-        if (posicao < 0) throw new Error('Posição inválida.')
-        this.nome = nome
-        this.posicao = posicao
-        this.tipo = tipo
+    constructor(data: EspacoDoTabuleiroInput) {
+        if (!data.nome) throw new Error('Nome do espaço é obrigatório.')
+        if (data.posicao < 0) throw new Error('Posição inválida.')
+        this.nome = data.nome
+        this.posicao = data.posicao
+        this.tipo = data.tipo
     }
 
-    toObject() {
+    getNome(): NomeEspaco {
+        return this.nome
+    }
+
+    getTipo(): TIPO_ESPACO_ENUM {
+        return this.tipo
+    }
+
+    toObject(): EspacoDoTabuleiroOutput {
         return {
             nome: this.nome,
             posicao: this.posicao,
@@ -54,21 +84,49 @@ export interface PropriedadeInput extends Omit<EspacoDoTabuleiroInput, 'tipo'> {
     tituloDePosse: TituloDePosse
 }
 
-export interface PropriedadeOutput extends EspacoDoTabuleiroOutput {
+export interface PropriedadeOutput extends EspacoDoTabuleiroBaseOutput {
+    tipo: TIPO_ESPACO_ENUM.PROPRIEDADE
     tituloDePosse: TituloDePosseOutput
 }
 
 export class Propriedade extends EspacoDoTabuleiro {
-    tituloDePosse: TituloDePosse
+    private quantidadeConstrucoes: number
+    private tituloDePosse: TituloDePosse
 
-    constructor(data: PropriedadeInput) {
-        super(data.nome, data.posicao, TIPO_ESPACO_ENUM.PROPRIEDADE)
-        this.tituloDePosse = data.tituloDePosse
+    constructor({ nome, posicao, tituloDePosse }: PropriedadeInput) {
+        super({ nome, posicao, tipo: TIPO_ESPACO_ENUM.PROPRIEDADE })
+        this.tituloDePosse = tituloDePosse
+        this.quantidadeConstrucoes = 0
+    }
+
+    getQuantidadeConstrucoes() {
+        return this.quantidadeConstrucoes
+    }
+
+    getTituloDePosse() {
+        return this.tituloDePosse
+    }
+
+    getCor() {
+        return this.tituloDePosse.getCor()
+    }
+
+    calcularAluguel(possuiMonopolio: boolean) {
+        const valorAluguel = this.tituloDePosse.getValorAluguel(
+            this.quantidadeConstrucoes,
+        )
+
+        if (possuiMonopolio && this.quantidadeConstrucoes === 0) {
+            return valorAluguel * 2
+        }
+
+        return valorAluguel
     }
 
     toObject(): PropriedadeOutput {
         return {
             ...super.toObject(),
+            tipo: TIPO_ESPACO_ENUM.PROPRIEDADE,
             tituloDePosse: this.tituloDePosse.toObject(),
         }
     }
@@ -79,21 +137,29 @@ export interface EstacaoDeMetroInput
     cartaEstacaoDeMetro: CartaEstacaoDeMetro
 }
 
-export interface EstacaoDeMetroOutput extends EspacoDoTabuleiroOutput {
+export interface EstacaoDeMetroOutput extends EspacoDoTabuleiroBaseOutput {
+    tipo: TIPO_ESPACO_ENUM.ESTACAO_DE_METRO
     cartaEstacaoDeMetro: CartaEstacaoDeMetroOutput
 }
 
 export class EstacaoDeMetro extends EspacoDoTabuleiro {
     cartaEstacaoDeMetro: CartaEstacaoDeMetro
 
-    constructor(data: EstacaoDeMetroInput) {
-        super(data.nome, data.posicao, TIPO_ESPACO_ENUM.ESTACAO_DE_METRO)
-        this.cartaEstacaoDeMetro = data.cartaEstacaoDeMetro
+    constructor({ nome, posicao, cartaEstacaoDeMetro }: EstacaoDeMetroInput) {
+        super({ nome, posicao, tipo: TIPO_ESPACO_ENUM.ESTACAO_DE_METRO })
+        this.cartaEstacaoDeMetro = cartaEstacaoDeMetro
+    }
+
+    calcularAluguel(quantidadeEstacoesPossuidas: number) {
+        return this.cartaEstacaoDeMetro.getValorAluguel(
+            quantidadeEstacoesPossuidas,
+        )
     }
 
     toObject(): EstacaoDeMetroOutput {
         return {
             ...super.toObject(),
+            tipo: TIPO_ESPACO_ENUM.ESTACAO_DE_METRO,
             cartaEstacaoDeMetro: this.cartaEstacaoDeMetro.toObject(),
         }
     }
@@ -103,22 +169,63 @@ export interface CompanhiaInput extends Omit<EspacoDoTabuleiroInput, 'tipo'> {
     cartaCompanhia: CartaCompanhia
 }
 
-export interface CompanhiaOutput extends EspacoDoTabuleiroOutput {
+export interface CompanhiaOutput extends EspacoDoTabuleiroBaseOutput {
+    tipo: TIPO_ESPACO_ENUM.COMPANHIA
     cartaCompanhia: CartaCompanhiaOutput
 }
 
 export class Companhia extends EspacoDoTabuleiro {
     cartaCompanhia: CartaCompanhia
 
-    constructor(data: CompanhiaInput) {
-        super(data.nome, data.posicao, TIPO_ESPACO_ENUM.COMPANHIA)
-        this.cartaCompanhia = data.cartaCompanhia
+    constructor({ nome, posicao, cartaCompanhia }: CompanhiaInput) {
+        super({ nome, posicao, tipo: TIPO_ESPACO_ENUM.COMPANHIA })
+        this.cartaCompanhia = cartaCompanhia
+    }
+
+    calcularAluguel(quantidadeCompanhiasPossuidas: number, somaDados: number) {
+        return quantidadeCompanhiasPossuidas === 1
+            ? somaDados * 4
+            : somaDados * 10
     }
 
     toObject(): CompanhiaOutput {
         return {
             ...super.toObject(),
+            tipo: TIPO_ESPACO_ENUM.COMPANHIA,
             cartaCompanhia: this.cartaCompanhia.toObject(),
+        }
+    }
+}
+
+export interface ImpostoInput extends Omit<EspacoDoTabuleiroInput, 'tipo'> {
+    aluguel: number
+}
+
+export interface ImpostoOutput extends EspacoDoTabuleiroBaseOutput {
+    tipo: TIPO_ESPACO_ENUM.IMPOSTO
+}
+
+export class Imposto extends EspacoDoTabuleiro {
+    private aluguel: number
+
+    constructor({ nome, posicao, aluguel }: ImpostoInput) {
+        super({ nome, posicao, tipo: TIPO_ESPACO_ENUM.IMPOSTO })
+
+        if (aluguel === undefined || aluguel === null) {
+            throw new Error('Aluguel do imposto é obrigatório')
+        }
+
+        this.aluguel = aluguel
+    }
+
+    getAluguel() {
+        return this.aluguel
+    }
+
+    toObject(): ImpostoOutput {
+        return {
+            ...super.toObject(),
+            tipo: TIPO_ESPACO_ENUM.IMPOSTO,
         }
     }
 }
