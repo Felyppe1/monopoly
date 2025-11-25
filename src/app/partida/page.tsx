@@ -212,7 +212,7 @@ export default function Partida() {
                                                     <div className="flex gap-4 items-center">
                                                         <div>
                                                             <img
-                                                                src={`personagem-${jogador.personagem}.png`}
+                                                                src={`./personagem-${jogador.personagem}.png`}
                                                                 alt=""
                                                                 className="w-16 h-16 rounded-full border-4 border-teal-400 shadow-md"
                                                             />

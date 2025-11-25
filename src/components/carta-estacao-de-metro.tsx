@@ -20,7 +20,7 @@ export const CartaEstacaoDeMetroView = ({
                     sizeClasses,
                 )}
             >
-                <img src={'metro.png'} className="w-18 pb-4" />
+                <img src={'./metro.png'} className="w-18 pb-4" />
 
                 <h2 className="font-extrabold text-center text-base/4 tracking-tight border-y-2 border-black py-1.5 w-full">
                     {estacaoDeMetro.nome.toUpperCase()}

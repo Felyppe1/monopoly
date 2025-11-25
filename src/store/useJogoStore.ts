@@ -14,7 +14,6 @@ interface JogoStore {
     fecharModalCarta: () => void
     setEspacoParaComprar: (carta: CartaOutputUnion | null) => void
     fecharComprarEspaco: () => void
-    resolverCarta: () => void
 }
 
 const estadoInicial = {
@@ -70,21 +69,5 @@ export const useJogoStore = create<JogoStore>((set, get) => ({
 
     fecharModalCarta: () => {
         set({ cartaAtiva: null })
-    },
-
-    resolverCarta: () => {
-        const { jogo, cartaAtiva } = get()
-
-        if (jogo && cartaAtiva) {
-            jogo.realizarAcaoCarta(cartaAtiva)
-
-            set({
-                jogo: Object.assign(
-                    Object.create(Object.getPrototypeOf(jogo)),
-                    jogo,
-                ),
-                cartaAtiva: null,
-            })
-        }
     },
 }))

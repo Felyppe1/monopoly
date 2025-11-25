@@ -30,7 +30,7 @@ export function ModalFalencia({ nomeJogador, onConfirm }: ModalFalenciaProps) {
 
                 <div className="mt-8">
                     <img
-                        src="/personagem-cadeia.png"
+                        src="./personagem-cadeia.png"
                         alt="Falência"
                         className="w-32 h-32 opacity-80 mb-4 mx-auto grayscale"
                     />

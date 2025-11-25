@@ -90,7 +90,7 @@ export function Tabuleiro() {
                 style={{ gridArea: 'm' }}
             >
                 <Image
-                    src="/monopoly-logo.png"
+                    src="./monopoly-logo.png"
                     alt="Logo"
                     className="absolute -rotate-45 mb-4"
                     width={400}

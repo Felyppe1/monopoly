@@ -93,10 +93,14 @@ export function Modais() {
                 // A carta é retirada do baralho na lógica do jogo ou aqui para visualização?
                 // Idealmente o método jogarDados já deveria ter populado algo ou usamos o getter
                 // Como no seu código original você fazia o pop aqui:
-                const carta = jogo.getCartaEventoAtual() // Método adicionado no jogo.ts recentemente ou usamos a lógica manual
+                // const carta = jogo.getCartaEventoAtual() // Método adicionado no jogo.ts recentemente ou usamos a lógica manual
+                const carta =
+                    espacoAtual.tipo === TIPO_ESPACO_ENUM.COFRE
+                        ? estadoJogo.baralho.cartasCofre.pop()!
+                        : estadoJogo.baralho.cartasSorte.pop()!
 
                 if (carta) {
-                    setCartaEvento(carta.toObject())
+                    setCartaEvento(carta)
                 } else {
                     // Fallback caso o método não retorne (ex: manual)
                     const cartaManual =
